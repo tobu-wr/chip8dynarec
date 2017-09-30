@@ -1,0 +1,4 @@
+[root]
+name = "chip8dynarec"
+version = "0.1.0"
+
