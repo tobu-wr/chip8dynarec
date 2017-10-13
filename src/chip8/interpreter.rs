@@ -79,7 +79,7 @@ impl Interpreter {
 			},
 			(0x8, _, _, 0x7) => {
 				chip8.register_v[0xF] = (chip8.register_v[x] < chip8.register_v[y]) as u8;
-				chip8.register_v[x] = chip8.register_v[y] - chip8.register_v[x];
+				chip8.register_v[x] = chip8.register_v[y].wrapping_sub(chip8.register_v[x]);
 			},
 			(0x8, _, _, 0xE) => {
 				chip8.register_v[0xF] = chip8.register_v[x] >> 7;

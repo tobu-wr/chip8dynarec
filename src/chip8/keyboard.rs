@@ -65,8 +65,6 @@ impl Keyboard {
 
 	pub fn wait_key_press(&mut self) -> u8 {
 		self.update_key_states();
-
-		// wait for a key press
 		loop {
 			for event in self.events.poll_iter() {
 				match event {
