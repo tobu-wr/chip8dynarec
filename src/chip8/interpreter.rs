@@ -120,12 +120,14 @@ impl Interpreter {
 			},
 			(0xF, _, 0x5, 0x5) => {
 				for i in 0..(x + 1) {
-					chip8.memory[chip8.register_i as usize + i] = chip8.register_v[i];
+					chip8.memory[chip8.register_i as usize] = chip8.register_v[i];
+					chip8.register_i += 1;
 				}
 			},
 			(0xF, _, 0x6, 0x5) => {
 				for i in 0..(x + 1) {
-					chip8.register_v[i] = chip8.memory[chip8.register_i as usize + i];
+					chip8.register_v[i] = chip8.memory[chip8.register_i as usize];
+					chip8.register_i += 1;
 				}
 			},
 			_ => panic!("unknown opcode")
