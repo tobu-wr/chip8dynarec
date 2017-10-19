@@ -4,9 +4,16 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::time::{Duration, Instant};
 
+#[cfg(feature="debugger")]
+use std::process::Command;
+
 use chip8::keyboard::Keyboard;
 use chip8::display::Display;
-//use chip8::interpreter::Interpreter;
+
+#[cfg(feature="interpreter")]
+use chip8::interpreter::Interpreter;
+
+#[cfg(not(feature="interpreter"))]
 use chip8::recompiler::Recompiler;
 
 const MEMORY_SIZE: usize = 0x1000;
@@ -155,20 +162,42 @@ impl Chip8 {
 		}
 	}
 
+	#[cfg(feature="debugger")]
+	fn print_registers(&self) {
+		println!("PC= {:x}", self.register_pc);
+		println!("I= {:x}", self.register_i);
+		println!("DT= {:x}", self.register_dt);
+		println!("ST= {:x}", self.register_st);
+		println!("SP= {:x}", self.register_sp);
+		for i in 0..16 as usize {
+			println!("V{}= {:x}", i, self.register_v[i]);
+		}
+		let _ = Command::new("cmd.exe").arg("/c").arg("pause").status();
+	}
+
 	pub fn run(&mut self, filename: String) {
 		self.load_rom(filename);
 
 		let mut time = Instant::now();
+
+		#[cfg(not(feature="interpreter"))]
 		let mut recompiler = Recompiler::new();
 		
 		loop {
-			//Interpreter::execute_next_instruction(self);
+			#[cfg(feature="debugger")]
+			self.print_registers();
+
+			#[cfg(feature="interpreter")]
+			Interpreter::execute_next_instruction(self);
+
+			#[cfg(not(feature="interpreter"))]
 			recompiler.execute_next_code_block(self);
 
 			// ~60Hz
 			if time.elapsed() >= Duration::from_millis(1000 / 60) { 
 				time = Instant::now();
 				self.display.refresh();
+				
 				if self.register_dt > 0 {
 					self.register_dt -= 1
 				}

@@ -7,3 +7,9 @@ authors = ["rwilfried <wilfried.rabouin@gmail.com>"]
 rand = "0.3"
 sdl2 = "0.30"
 libc = "0.2"
+
+[features]
+# no features by default
+default = []
+debugger = []
+interpreter = []

@@ -1,25 +1,11 @@
 extern crate rand;
 
-//use std::process::Command;
 use chip8::Chip8;
 
 pub struct Interpreter;
 
 impl Interpreter {
 	pub fn execute_next_instruction(chip8: &mut Chip8) {
-		// debug
-		/*println!("PC= {:x}", chip8.register_pc);
-		println!("I= {:x}", chip8.register_i);
-		println!("DT= {:x}", chip8.register_dt);
-		println!("ST= {:x}", chip8.register_st);
-		println!("SP= {:x}", chip8.register_sp);
-
-		for i in 0..16 as usize {
-			println!("V{}= {:x}", i, chip8.register_v[i]);
-		}
-
-		let _ = Command::new("cmd.exe").arg("/c").arg("pause").status();*/
-
 		// fetch
 		let high_byte = chip8.memory[chip8.register_pc as usize];
 		let low_byte = chip8.memory[chip8.register_pc as usize + 1];
