@@ -6,3 +6,4 @@ authors = ["rwilfried <wilfried.rabouin@gmail.com>"]
 [dependencies]
 rand = "0.3"
 sdl2 = "0.30"
+libc = "0.2"

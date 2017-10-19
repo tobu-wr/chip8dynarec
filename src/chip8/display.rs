@@ -45,7 +45,9 @@ impl Display {
 			for i in 0..8 {
 				let offset = y_position as usize * DISPLAY_WIDTH + (x_position as usize + i) % DISPLAY_WIDTH;
 				let old_pixel = self.frame_buffer[offset];
+
 				self.frame_buffer[offset] ^= (byte >> (7 - i)) & 1;
+				
 				if old_pixel == 1 && self.frame_buffer[offset] == 0 {
 					pixel_erased = true;
 				}

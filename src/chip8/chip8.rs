@@ -6,7 +6,8 @@ use std::time::{Duration, Instant};
 
 use chip8::keyboard::Keyboard;
 use chip8::display::Display;
-use chip8::interpreter::Interpreter;
+//use chip8::interpreter::Interpreter;
+use chip8::recompiler::Recompiler;
 
 const MEMORY_SIZE: usize = 0x1000;
 const STACK_SIZE: usize = 16;
@@ -158,8 +159,11 @@ impl Chip8 {
 		self.load_rom(filename);
 
 		let mut time = Instant::now();
+		let mut recompiler = Recompiler::new();
+		
 		loop {
-			Interpreter::execute_next_instruction(self);
+			//Interpreter::execute_next_instruction(self);
+			recompiler.execute_next_code_block(self);
 
 			// ~60Hz
 			if time.elapsed() >= Duration::from_millis(1000 / 60) { 
