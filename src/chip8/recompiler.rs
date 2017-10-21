@@ -25,7 +25,7 @@ impl Recompiler {
 	fn recompile_next_code_block(chip8: &mut Chip8) -> CodeBlock {
 		let mut raw_code: Vec<u8> = Vec::new();
 
-		// TODO
+		raw_code.push(0xC3); // RET
 
 		CodeBlock::new(raw_code)
 	}
