@@ -25,11 +25,11 @@ impl Recompiler {
 		self.code_cache[&chip8.register_pc].execute();
 
 		if self.draw_sprite_interrupt {
-			let high_byte = chip8.memory[chip8.register_pc as usize - 2];
-			let low_byte = chip8.memory[chip8.register_pc as usize - 1];
-			let x = high_byte as usize & 0x0F;
-			let y = low_byte as usize >> 4;
-			let n = low_byte as usize & 0x0F;
+			let high_byte = chip8.memory[chip8.register_pc as usize - 2] as usize;
+			let low_byte = chip8.memory[chip8.register_pc as usize - 1] as usize;
+			let x = high_byte & 0x0F;
+			let y = low_byte >> 4;
+			let n = low_byte & 0x0F;
 			let sprite = &chip8.memory[chip8.register_i as usize .. chip8.register_i as usize + n];
 			chip8.register_v[0xF] = chip8.display.draw_sprite(chip8.register_v[x], chip8.register_v[y], sprite) as u8;
 			self.draw_sprite_interrupt = false;
@@ -61,6 +61,10 @@ impl Recompiler {
 					unimplemented!();
 				},
 				(0x2, ..) => {
+					code_emitter.add_imm_to_m8(1, &chip8.register_sp as *const i8 as u32);
+					code_emitter.movsx_m8_to_esi(&chip8.register_sp as *const i8 as u32);
+					code_emitter.mov_imm_to_edi(&chip8.stack as *const [u16; 16] as u32);
+					code_emitter.mov_imm_to_m16_edi2esi(register_pc);
 					register_pc = nnn;
 				},
 				(0x3, ..) => {

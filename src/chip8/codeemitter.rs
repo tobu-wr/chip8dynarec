@@ -51,6 +51,14 @@ impl CodeEmitter {
 		self.raw_code.push(imm);
 	}
 
+	pub fn mov_imm_to_edi(&mut self, imm: u32) {
+		self.raw_code.push(0xBF);
+		self.raw_code.push(imm as u8);
+		self.raw_code.push((imm >> 8) as u8);
+		self.raw_code.push((imm >> 16) as u8);
+		self.raw_code.push((imm >> 24) as u8);
+	}
+
 	pub fn mov_ax_to_m(&mut self, disp: u32) {
 		self.raw_code.push(0x66);
 		self.raw_code.push(0xA3);
@@ -80,6 +88,26 @@ impl CodeEmitter {
 		self.raw_code.push((disp >> 24) as u8);
 		self.raw_code.push(imm as u8);
 		self.raw_code.push((imm >> 8) as u8);
+	}
+
+	// mov word ptr [edi+2*esi],imm16
+	pub fn mov_imm_to_m16_edi2esi(&mut self, imm: u16) {
+		self.raw_code.push(0x66);
+		self.raw_code.push(0xC7);
+		self.raw_code.push(0x04);
+		self.raw_code.push(0x77);
+		self.raw_code.push(imm as u8);
+		self.raw_code.push((imm >> 8) as u8);
+	}
+
+	pub fn movsx_m8_to_esi(&mut self, disp: u32) {
+		self.raw_code.push(0x0F);
+		self.raw_code.push(0xBE);
+		self.raw_code.push(0x35);
+		self.raw_code.push(disp as u8);
+		self.raw_code.push((disp >> 8) as u8);
+		self.raw_code.push((disp >> 16) as u8);
+		self.raw_code.push((disp >> 24) as u8);
 	}
 
 	pub fn mul_al_with_m(&mut self, disp: u32) {
