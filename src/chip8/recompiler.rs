@@ -5,25 +5,38 @@ use chip8::codeblock::CodeBlock;
 use chip8::codeemitter::CodeEmitter;
 
 pub struct Recompiler {
-	code_cache: HashMap<u16, CodeBlock>
+	code_cache: HashMap<u16, CodeBlock>,
+	draw_sprite_interrupt: bool
 }
 
 impl Recompiler {
 	pub fn new() -> Recompiler {
 		Recompiler {
-			code_cache: HashMap::new()
+			code_cache: HashMap::new(),
+			draw_sprite_interrupt: false
 		}
 	}
 
 	pub fn execute_next_code_block(&mut self, chip8: &mut Chip8) {
 		if !self.code_cache.contains_key(&chip8.register_pc) {
-			let code_block = Recompiler::recompile_next_code_block(chip8);
+			let code_block = self.recompile_next_code_block(chip8);
 			self.code_cache.insert(chip8.register_pc, code_block);
 		}
 		self.code_cache[&chip8.register_pc].execute();
+
+		if self.draw_sprite_interrupt {
+			let high_byte = chip8.memory[chip8.register_pc as usize - 2];
+			let low_byte = chip8.memory[chip8.register_pc as usize - 1];
+			let x = high_byte as usize & 0x0F;
+			let y = low_byte as usize >> 4;
+			let n = low_byte as usize & 0x0F;
+			let sprite = &chip8.memory[chip8.register_i as usize .. chip8.register_i as usize + n];
+			chip8.register_v[0xF] = chip8.display.draw_sprite(chip8.register_v[x], chip8.register_v[y], sprite) as u8;
+			self.draw_sprite_interrupt = false;
+		}
 	}
 
-	fn recompile_next_code_block(chip8: &Chip8) -> CodeBlock {
+	fn recompile_next_code_block(&mut self, chip8: &Chip8) -> CodeBlock {
 		let mut code_emitter = CodeEmitter::new();
 		let mut register_pc = chip8.register_pc;
 
@@ -104,8 +117,10 @@ impl Recompiler {
 				(0xC, ..) => {
 					unimplemented!();
 				},
-				(0xD, _, _, n) => {
-					unimplemented!();
+				(0xD, ..) => {
+					code_emitter.mov_imm_to_m8(1, &self.draw_sprite_interrupt as *const bool as u32);
+					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16 as u32);
+					break;
 				},
 				(0xE, _, 0x9, 0xE) => {
 					unimplemented!();
