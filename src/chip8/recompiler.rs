@@ -61,17 +61,17 @@ impl Recompiler {
 					unimplemented!();
 				},
 				(0x2, ..) => {
-					code_emitter.add_imm_to_m8(1, &chip8.register_sp as *const i8 as u32);
-					code_emitter.movsx_m8_to_esi(&chip8.register_sp as *const i8 as u32);
+					code_emitter.add_imm_to_m8(1, &chip8.register_sp as *const i8 as *const u8);
+					code_emitter.movsx_m8_to_esi(&chip8.register_sp as *const i8 as *const u8);
 					code_emitter.mov_imm_to_edi(&chip8.stack as *const [u16; 16] as u32);
 					code_emitter.mov_imm_to_m16_edi2esi(register_pc);
 					register_pc = nnn;
 				},
 				(0x3, ..) => {
-					code_emitter.cmp_imm_with_m8(low_byte, &chip8.register_v[x] as *const u8 as u32);
-					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16 as u32);
+					code_emitter.cmp_imm_with_m8(low_byte, &chip8.register_v[x] as *const u8);
+					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16);
 					code_emitter.jne(9);
-					code_emitter.add_imm_to_m16(2, &chip8.register_pc as *const u16 as u32);
+					code_emitter.add_imm_to_m16(2, &chip8.register_pc as *const u16);
 					break;
 				},
 				(0x4, ..) => {
@@ -80,8 +80,8 @@ impl Recompiler {
 				(0x5, _, _, 0x0) => {
 					unimplemented!();
 				},
-				(0x6, ..) => code_emitter.mov_imm_to_m8(low_byte, &chip8.register_v[x] as *const u8 as u32),
-				(0x7, ..) => code_emitter.add_imm_to_m8(low_byte, &chip8.register_v[x] as *const u8 as u32),
+				(0x6, ..) => code_emitter.mov_imm_to_m8(low_byte, &chip8.register_v[x] as *const u8),
+				(0x7, ..) => code_emitter.add_imm_to_m8(low_byte, &chip8.register_v[x] as *const u8),
 				(0x8, _, _, 0x0) => {
 					unimplemented!();
 				},
@@ -122,8 +122,8 @@ impl Recompiler {
 					unimplemented!();
 				},
 				(0xD, ..) => {
-					code_emitter.mov_imm_to_m8(1, &self.draw_sprite_interrupt as *const bool as u32);
-					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16 as u32);
+					code_emitter.mov_imm_to_m8(1, &self.draw_sprite_interrupt as *const bool as *const u8);
+					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16);
 					break;
 				},
 				(0xE, _, 0x9, 0xE) => {
@@ -149,8 +149,8 @@ impl Recompiler {
 				},
 				(0xF, _, 0x2, 0x9) => {
 					code_emitter.mov_imm_to_al(5);
-					code_emitter.mul_al_with_m(&chip8.register_v[x] as *const u8 as u32);
-					code_emitter.mov_ax_to_m(&chip8.register_i as *const u16 as u32);
+					code_emitter.mul_m8(&chip8.register_v[x] as *const u8);
+					code_emitter.mov_ax_to_m(&chip8.register_i as *const u16);
 				},
 				(0xF, _, 0x3, 0x3) => {
 					unimplemented!();
