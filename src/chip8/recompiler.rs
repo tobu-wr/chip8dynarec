@@ -57,7 +57,7 @@ impl Recompiler {
 				(0x0, 0x0, 0xE, 0xE) => {
 					code_emitter.movsx_m8_to_esi(&chip8.register_sp as *const i8 as *const u8);
 					code_emitter.mov_imm_to_edi(&chip8.stack as *const [u16; 16] as u32);
-					code_emitter.mov_m16_to_ax_edi2esi();
+					code_emitter.mov_m_to_ax_edi2esi();
 					code_emitter.mov_ax_to_m(&chip8.register_pc as *const u16);
 					code_emitter.sub_imm_to_m8(1, &chip8.register_sp as *const i8 as *const u8);
 					break;
@@ -106,7 +106,10 @@ impl Recompiler {
 					unimplemented!();
 				},
 				(0x8, _, _, 0x5) => {
-					unimplemented!();
+					code_emitter.mov_m_to_al(&chip8.register_v[x] as *const u8);
+					code_emitter.sub_m_to_al(&chip8.register_v[y] as *const u8);
+					code_emitter.setae_m(&chip8.register_v[0xF] as *const u8);
+					code_emitter.mov_al_to_m(&chip8.register_v[x] as *const u8);
 				},
 				(0x8, _, _, 0x6) => {
 					unimplemented!();

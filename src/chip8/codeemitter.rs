@@ -106,7 +106,7 @@ impl CodeEmitter {
 	}
 
 	// mov ax,word ptr [edi+esi*2]
-	pub fn mov_m16_to_ax_edi2esi(&mut self) {
+	pub fn mov_m_to_ax_edi2esi(&mut self) {
 		self.raw_code.push(0x66);
 		self.raw_code.push(0x8B);
 		self.raw_code.push(0x04);
