@@ -46,7 +46,7 @@ impl Recompiler {
 			let opcode = (high_byte >> 4, high_byte & 0x0F, low_byte >> 4, low_byte & 0x0F);
 			let nnn = ((high_byte as u16 & 0x0F) << 8) | low_byte as u16;
 			let x = high_byte as usize & 0x0F;
-			//let y = low_byte as usize >> 4;
+			let y = low_byte as usize >> 4;
 
 			register_pc += 2;
 
@@ -55,11 +55,14 @@ impl Recompiler {
 					unimplemented!();
 				},
 				(0x0, 0x0, 0xE, 0xE) => {
-					unimplemented!();
+					code_emitter.movsx_m8_to_esi(&chip8.register_sp as *const i8 as *const u8);
+					code_emitter.mov_imm_to_edi(&chip8.stack as *const [u16; 16] as u32);
+					code_emitter.mov_m16_to_ax_edi2esi();
+					code_emitter.mov_ax_to_m(&chip8.register_pc as *const u16);
+					code_emitter.sub_imm_to_m8(1, &chip8.register_sp as *const i8 as *const u8);
+					break;
 				},
-				(0x1, ..) => {
-					unimplemented!();
-				},
+				(0x1, ..) => register_pc = nnn,
 				(0x2, ..) => {
 					code_emitter.add_imm_to_m8(1, &chip8.register_sp as *const i8 as *const u8);
 					code_emitter.movsx_m8_to_esi(&chip8.register_sp as *const i8 as *const u8);
@@ -75,7 +78,11 @@ impl Recompiler {
 					break;
 				},
 				(0x4, ..) => {
-					unimplemented!();
+					code_emitter.cmp_imm_with_m8(low_byte, &chip8.register_v[x] as *const u8);
+					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16);
+					code_emitter.je(9);
+					code_emitter.add_imm_to_m16(2, &chip8.register_pc as *const u16);
+					break;
 				},
 				(0x5, _, _, 0x0) => {
 					unimplemented!();
@@ -83,7 +90,8 @@ impl Recompiler {
 				(0x6, ..) => code_emitter.mov_imm_to_m8(low_byte, &chip8.register_v[x] as *const u8),
 				(0x7, ..) => code_emitter.add_imm_to_m8(low_byte, &chip8.register_v[x] as *const u8),
 				(0x8, _, _, 0x0) => {
-					unimplemented!();
+					code_emitter.mov_m_to_al(&chip8.register_v[y] as *const u8);
+					code_emitter.mov_al_to_m(&chip8.register_v[x] as *const u8);
 				},
 				(0x8, _, _, 0x1) => {
 					unimplemented!();
@@ -104,13 +112,21 @@ impl Recompiler {
 					unimplemented!();
 				},
 				(0x8, _, _, 0x7) => {
-					unimplemented!();
+					code_emitter.mov_m_to_al(&chip8.register_v[y] as *const u8);
+					code_emitter.sub_m_to_al(&chip8.register_v[x] as *const u8);
+					code_emitter.setae_m(&chip8.register_v[0xF] as *const u8);
+					code_emitter.mov_al_to_m(&chip8.register_v[x] as *const u8);
 				},
 				(0x8, _, _, 0xE) => {
 					unimplemented!();
 				},
 				(0x9, _, _, 0x0) => {
-					unimplemented!();
+					code_emitter.mov_m_to_al(&chip8.register_v[x] as *const u8);
+					code_emitter.cmp_m_with_al(&chip8.register_v[y] as *const u8);
+					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16);
+					code_emitter.je(9);
+					code_emitter.add_imm_to_m16(2, &chip8.register_pc as *const u16);
+					break;
 				},
 				(0xA, ..) => {
 					unimplemented!();
