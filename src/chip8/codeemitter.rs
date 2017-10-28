@@ -168,6 +168,14 @@ impl CodeEmitter {
 		self.raw_code.push((disp >> 24) as u8);
 	}
 
+	pub fn popa(&mut self) {
+		self.raw_code.push(0x61);
+	}
+
+	pub fn pusha(&mut self) {
+		self.raw_code.push(0x60);
+	}
+
 	pub fn ret(&mut self) {
 		self.raw_code.push(0xC3);
 	}

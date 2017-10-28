@@ -40,6 +40,8 @@ impl Recompiler {
 		let mut code_emitter = CodeEmitter::new();
 		let mut register_pc = chip8.register_pc;
 
+		code_emitter.pusha();
+
 		loop {
 			let high_byte = chip8.memory[register_pc as usize];
 			let low_byte = chip8.memory[register_pc as usize + 1];
@@ -184,6 +186,7 @@ impl Recompiler {
 			}
 		}
 
+		code_emitter.popa();
 		code_emitter.ret();
 
 		CodeBlock::new(code_emitter.raw_code)
