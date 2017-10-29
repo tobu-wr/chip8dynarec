@@ -195,7 +195,19 @@ impl Recompiler {
 					code_emitter.mov_ax_to_m(&chip8.register_i as *const u16);
 				},
 				(0xF, _, 0x3, 0x3) => {
-					unimplemented!();
+					code_emitter.movzx_m_to_ax(&chip8.register_v[x] as *const u8);
+					code_emitter.mov_imm_to_dl(100);
+					code_emitter.div_dl();
+					code_emitter.movzx_m16_to_esi(&chip8.register_i as *const u16);
+					code_emitter.mov_imm_to_edi(&chip8.memory[0] as *const u8 as u32);
+					code_emitter.mov_al_to_m_ediesi();
+					code_emitter.movzx_ah_to_ax();
+					code_emitter.mov_imm_to_dl(10);
+					code_emitter.div_dl();
+					code_emitter.mov_imm_to_edi(&chip8.memory[1] as *const u8 as u32);
+					code_emitter.mov_al_to_m_ediesi();
+					code_emitter.mov_imm_to_edi(&chip8.memory[2] as *const u8 as u32);
+					code_emitter.mov_ah_to_m_ediesi();
 				},
 				(0xF, _, 0x5, 0x5) => {
 					code_emitter.movzx_m16_to_esi(&chip8.register_i as *const u16);
