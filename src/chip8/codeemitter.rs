@@ -20,12 +20,6 @@ impl CodeEmitter {
 		self.raw_code.push(0xC8);
 	}
 
-	pub fn add_imm_to_cl(&mut self, imm: u8) {
-		self.raw_code.push(0x80);
-		self.raw_code.push(0xC1);
-		self.raw_code.push(imm);
-	}
-
 	pub fn add_ax_to_m(&mut self, m: *const u16) {
 		self.raw_code.push(0x66);
 		self.raw_code.push(0x01);
@@ -74,12 +68,6 @@ impl CodeEmitter {
 		self.raw_code.push((disp >> 8) as u8);
 		self.raw_code.push((disp >> 16) as u8);
 		self.raw_code.push((disp >> 24) as u8);
-	}
-
-	pub fn cmp_cl_with_imm(&mut self, imm: u8) {
-		self.raw_code.push(0x80);
-		self.raw_code.push(0xF9);
-		self.raw_code.push(imm);
 	}
 
 	pub fn cmp_ax_with_imm(&mut self, imm: u16) {
@@ -217,12 +205,6 @@ impl CodeEmitter {
 		self.raw_code.push((imm >> 8) as u8);
 	}
 
-	pub fn movzx_cl_to_esi(&mut self) {
-		self.raw_code.push(0x0F);
-		self.raw_code.push(0xB6);
-		self.raw_code.push(0xF1);
-	}
-
 	pub fn movzx_m_to_ax(&mut self, m: *const u8) {
 		self.raw_code.push(0x66);
 		self.raw_code.push(0x0F);
@@ -345,10 +327,5 @@ impl CodeEmitter {
 		self.raw_code.push((disp >> 16) as u8);
 		self.raw_code.push((disp >> 24) as u8);
 		self.raw_code.push(imm);
-	}
-
-	pub fn xor_cl_cl(&mut self) {
-		self.raw_code.push(0x30);
-		self.raw_code.push(0xC9);
 	}
 }

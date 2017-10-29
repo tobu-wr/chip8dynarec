@@ -66,7 +66,7 @@ impl Recompiler {
 				},
 				(0x0, 0x0, 0xE, 0xE) => {
 					code_emitter.movzx_m8_to_esi(&chip8.register_sp as *const i8 as *const u8);
-					code_emitter.mov_imm_to_edi(&chip8.stack as *const [u16; 16] as u32);
+					code_emitter.mov_imm_to_edi(&chip8.stack[0] as *const u16 as u32);
 					code_emitter.mov_m_to_ax_edi2esi();
 					code_emitter.mov_ax_to_m(&chip8.register_pc as *const u16);
 					code_emitter.sub_imm_to_m8(1, &chip8.register_sp as *const i8 as *const u8);
@@ -76,7 +76,7 @@ impl Recompiler {
 				(0x2, ..) => {
 					code_emitter.add_imm_to_m8(1, &chip8.register_sp as *const i8 as *const u8);
 					code_emitter.movzx_m8_to_esi(&chip8.register_sp as *const i8 as *const u8);
-					code_emitter.mov_imm_to_edi(&chip8.stack as *const [u16; 16] as u32);
+					code_emitter.mov_imm_to_edi(&chip8.stack[0] as *const u16 as u32);
 					code_emitter.mov_imm_to_m16_edi2esi(register_pc);
 					register_pc = nnn;
 				},
@@ -198,30 +198,22 @@ impl Recompiler {
 					unimplemented!();
 				},
 				(0xF, _, 0x5, 0x5) => {
-					code_emitter.xor_cl_cl();
-					code_emitter.movzx_cl_to_esi();
-					code_emitter.mov_imm_to_edi(&chip8.register_v as *const [u8; 16] as u32);
-					code_emitter.mov_m_to_al_ediesi();
 					code_emitter.movzx_m16_to_esi(&chip8.register_i as *const u16);
-					code_emitter.mov_imm_to_edi(&chip8.memory as *const [u8; 0x1000] as u32);
-					code_emitter.mov_al_to_m_ediesi();
-					code_emitter.add_imm_to_m16(1, &chip8.register_i as *const u16);
-					code_emitter.add_imm_to_cl(1);
-					code_emitter.cmp_cl_with_imm(x as u8 + 1);
-					code_emitter.jne(-30);
+					for i in 0..(x + 1) {
+						code_emitter.mov_m_to_al(&chip8.register_v[i] as *const u8);
+						code_emitter.mov_imm_to_edi(&chip8.memory[i] as *const u8 as u32);
+						code_emitter.mov_al_to_m_ediesi();
+					}
+					code_emitter.add_imm_to_m16(x as u16, &chip8.register_i as *const u16);
 				},
 				(0xF, _, 0x6, 0x5) => {
-					code_emitter.xor_cl_cl();
 					code_emitter.movzx_m16_to_esi(&chip8.register_i as *const u16);
-					code_emitter.mov_imm_to_edi(&chip8.memory as *const [u8; 0x1000] as u32);
-					code_emitter.mov_m_to_al_ediesi();
-					code_emitter.movzx_cl_to_esi();
-					code_emitter.mov_imm_to_edi(&chip8.register_v as *const [u8; 16] as u32);
-					code_emitter.mov_al_to_m_ediesi();
-					code_emitter.add_imm_to_m16(1, &chip8.register_i as *const u16);
-					code_emitter.add_imm_to_cl(1);
-					code_emitter.cmp_cl_with_imm(x as u8 + 1);
-					code_emitter.jne(-30);
+					for i in 0..(x + 1) {
+						code_emitter.mov_imm_to_edi(&chip8.memory[i] as *const u8 as u32);
+						code_emitter.mov_m_to_al_ediesi();
+						code_emitter.mov_al_to_m(&chip8.register_v[i] as *const u8);
+					}
+					code_emitter.add_imm_to_m16(x as u16, &chip8.register_i as *const u16);
 				},
 				_ => panic!("unknown opcode")
 			}
