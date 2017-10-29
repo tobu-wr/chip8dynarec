@@ -196,8 +196,8 @@ impl Chip8 {
 			// ~60Hz
 			if time.elapsed() >= Duration::from_millis(1000 / 60) { 
 				time = Instant::now();
+				self.keyboard.update_key_states();
 				self.display.refresh();
-				
 				if self.register_dt > 0 {
 					self.register_dt -= 1
 				}

@@ -18,7 +18,7 @@ impl Keyboard {
 		}
 	}
 
-	fn update_key_states(&mut self) {
+	pub fn update_key_states(&mut self) {
 		for event in self.events.poll_iter() {
 			match event {
 				Event::KeyDown { keycode: Some(Keycode::Num0), ..} => self.key_states[0x0] = true,
@@ -59,14 +59,12 @@ impl Keyboard {
 	}
 
 	pub fn is_pressed(&mut self, key: u8) -> bool {
-		self.update_key_states();
 		self.key_states[key as usize]
 	}
 
 	pub fn wait_key_press(&mut self) -> u8 {
-		self.update_key_states();
 		loop {
-			for event in self.events.poll_iter() {
+			for event in self.events.wait_iter() {
 				match event {
 					Event::KeyDown { keycode: Some(Keycode::Num0), ..} => {
 						self.key_states[0x0] = true;
