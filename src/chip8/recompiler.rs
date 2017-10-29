@@ -1,11 +1,13 @@
-use std::collections::HashMap;
+extern crate fnv;
+
+use self::fnv::FnvHashMap;
 
 use chip8::Chip8;
 use chip8::codeblock::CodeBlock;
 use chip8::codeemitter::CodeEmitter;
 
 pub struct Recompiler {
-	code_cache: HashMap<u16, CodeBlock>,
+	code_cache: FnvHashMap<u16, CodeBlock>,
 	draw_sprite_interrupt: bool,
 	clear_interrupt: bool
 }
@@ -13,7 +15,7 @@ pub struct Recompiler {
 impl Recompiler {
 	pub fn new() -> Recompiler {
 		Recompiler {
-			code_cache: HashMap::new(),
+			code_cache: FnvHashMap::default(),
 			draw_sprite_interrupt: false,
 			clear_interrupt: false
 		}
