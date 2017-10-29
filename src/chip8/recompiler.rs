@@ -6,14 +6,16 @@ use chip8::codeemitter::CodeEmitter;
 
 pub struct Recompiler {
 	code_cache: HashMap<u16, CodeBlock>,
-	draw_sprite_interrupt: bool
+	draw_sprite_interrupt: bool,
+	clear_interrupt: bool
 }
 
 impl Recompiler {
 	pub fn new() -> Recompiler {
 		Recompiler {
 			code_cache: HashMap::new(),
-			draw_sprite_interrupt: false
+			draw_sprite_interrupt: false,
+			clear_interrupt: false
 		}
 	}
 
@@ -33,6 +35,10 @@ impl Recompiler {
 			let sprite = &chip8.memory[chip8.register_i as usize .. chip8.register_i as usize + n];
 			chip8.register_v[0xF] = chip8.display.draw_sprite(chip8.register_v[x], chip8.register_v[y], sprite) as u8;
 			self.draw_sprite_interrupt = false;
+		} 
+		else if self.clear_interrupt {
+			chip8.display.clear();
+			self.clear_interrupt = false;
 		}
 	}
 
@@ -54,10 +60,12 @@ impl Recompiler {
 
 			match opcode {
 				(0x0, 0x0, 0xE, 0x0) => {
-					unimplemented!();
+					code_emitter.mov_imm_to_m8(1, &self.clear_interrupt as *const bool as *const u8);
+					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16);
+					break;
 				},
 				(0x0, 0x0, 0xE, 0xE) => {
-					code_emitter.movsx_m8_to_esi(&chip8.register_sp as *const i8 as *const u8);
+					code_emitter.movzx_m8_to_esi(&chip8.register_sp as *const i8 as *const u8);
 					code_emitter.mov_imm_to_edi(&chip8.stack as *const [u16; 16] as u32);
 					code_emitter.mov_m_to_ax_edi2esi();
 					code_emitter.mov_ax_to_m(&chip8.register_pc as *const u16);
@@ -67,7 +75,7 @@ impl Recompiler {
 				(0x1, ..) => register_pc = nnn,
 				(0x2, ..) => {
 					code_emitter.add_imm_to_m8(1, &chip8.register_sp as *const i8 as *const u8);
-					code_emitter.movsx_m8_to_esi(&chip8.register_sp as *const i8 as *const u8);
+					code_emitter.movzx_m8_to_esi(&chip8.register_sp as *const i8 as *const u8);
 					code_emitter.mov_imm_to_edi(&chip8.stack as *const [u16; 16] as u32);
 					code_emitter.mov_imm_to_m16_edi2esi(register_pc);
 					register_pc = nnn;
@@ -99,13 +107,19 @@ impl Recompiler {
 					unimplemented!();
 				},
 				(0x8, _, _, 0x2) => {
-					unimplemented!();
+					code_emitter.mov_m_to_al(&chip8.register_v[y] as *const u8);
+					code_emitter.and_m_al(&chip8.register_v[x] as *const u8);
 				},
 				(0x8, _, _, 0x3) => {
 					unimplemented!();
 				},
 				(0x8, _, _, 0x4) => {
-					unimplemented!();
+					code_emitter.movzx_m_to_ax(&chip8.register_v[x] as *const u8);
+					code_emitter.movzx_m_to_cx(&chip8.register_v[y] as *const u8);
+					code_emitter.add_cx_to_ax();
+					code_emitter.mov_al_to_m(&chip8.register_v[x] as *const u8);
+					code_emitter.cmp_ax_with_imm(0xFF);
+					code_emitter.seta_m(&chip8.register_v[0xF] as *const u8);
 				},
 				(0x8, _, _, 0x5) => {
 					code_emitter.mov_m_to_al(&chip8.register_v[x] as *const u8);
@@ -123,7 +137,11 @@ impl Recompiler {
 					code_emitter.mov_al_to_m(&chip8.register_v[x] as *const u8);
 				},
 				(0x8, _, _, 0xE) => {
-					unimplemented!();
+					code_emitter.mov_m_to_al(&chip8.register_v[y] as *const u8);
+					code_emitter.shr_al_imm(7);
+					code_emitter.mov_al_to_m(&chip8.register_v[0xF] as *const u8);
+					code_emitter.add_al_to_al();
+					code_emitter.mov_al_to_m(&chip8.register_v[x] as *const u8);
 				},
 				(0x9, _, _, 0x0) => {
 					code_emitter.mov_m_to_al(&chip8.register_v[x] as *const u8);
@@ -133,14 +151,14 @@ impl Recompiler {
 					code_emitter.add_imm_to_m16(2, &chip8.register_pc as *const u16);
 					break;
 				},
-				(0xA, ..) => {
-					unimplemented!();
-				},
+				(0xA, ..) => code_emitter.mov_imm_to_m16(nnn, &chip8.register_i as *const u16),
 				(0xB, ..) => {
 					unimplemented!();
 				},
 				(0xC, ..) => {
-					unimplemented!();
+					code_emitter.rdrand_ax();
+					code_emitter.and_al_imm(low_byte);
+					code_emitter.mov_al_to_m(&chip8.register_v[x] as *const u8)
 				},
 				(0xD, ..) => {
 					code_emitter.mov_imm_to_m8(1, &self.draw_sprite_interrupt as *const bool as *const u8);
@@ -154,19 +172,22 @@ impl Recompiler {
 					unimplemented!();
 				},
 				(0xF, _, 0x0, 0x7) => {
-					unimplemented!();
+					code_emitter.mov_m_to_al(&chip8.register_dt as *const u8);
+					code_emitter.mov_al_to_m(&chip8.register_v[x] as *const u8);
 				},
 				(0xF, _, 0x0, 0xA) => {
 					unimplemented!();
 				},
 				(0xF, _, 0x1, 0x5) => {
-					unimplemented!();
+					code_emitter.mov_m_to_al(&chip8.register_v[x] as *const u8);
+					code_emitter.mov_al_to_m(&chip8.register_dt as *const u8);
 				},
 				(0xF, _, 0x1, 0x8) => {
 					unimplemented!();
 				},
 				(0xF, _, 0x1, 0xE) => {
-					unimplemented!();
+					code_emitter.movzx_m_to_ax(&chip8.register_v[x] as *const u8);
+					code_emitter.add_ax_to_m(&chip8.register_i as *const u16);
 				},
 				(0xF, _, 0x2, 0x9) => {
 					code_emitter.mov_imm_to_al(5);
@@ -177,10 +198,30 @@ impl Recompiler {
 					unimplemented!();
 				},
 				(0xF, _, 0x5, 0x5) => {
-					unimplemented!();
+					code_emitter.xor_cl_cl();
+					code_emitter.movzx_cl_to_esi();
+					code_emitter.mov_imm_to_edi(&chip8.register_v as *const [u8; 16] as u32);
+					code_emitter.mov_m_to_al_ediesi();
+					code_emitter.movzx_m16_to_esi(&chip8.register_i as *const u16);
+					code_emitter.mov_imm_to_edi(&chip8.memory as *const [u8; 0x1000] as u32);
+					code_emitter.mov_al_to_m_ediesi();
+					code_emitter.add_imm_to_m16(1, &chip8.register_i as *const u16);
+					code_emitter.add_imm_to_cl(1);
+					code_emitter.cmp_cl_with_imm(x as u8 + 1);
+					code_emitter.jne(-30);
 				},
 				(0xF, _, 0x6, 0x5) => {
-					unimplemented!();
+					code_emitter.xor_cl_cl();
+					code_emitter.movzx_m16_to_esi(&chip8.register_i as *const u16);
+					code_emitter.mov_imm_to_edi(&chip8.memory as *const [u8; 0x1000] as u32);
+					code_emitter.mov_m_to_al_ediesi();
+					code_emitter.movzx_cl_to_esi();
+					code_emitter.mov_imm_to_edi(&chip8.register_v as *const [u8; 16] as u32);
+					code_emitter.mov_al_to_m_ediesi();
+					code_emitter.add_imm_to_m16(1, &chip8.register_i as *const u16);
+					code_emitter.add_imm_to_cl(1);
+					code_emitter.cmp_cl_with_imm(x as u8 + 1);
+					code_emitter.jne(-30);
 				},
 				_ => panic!("unknown opcode")
 			}
