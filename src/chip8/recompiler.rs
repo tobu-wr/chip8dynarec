@@ -9,7 +9,8 @@ use chip8::codeemitter::CodeEmitter;
 pub struct Recompiler {
 	code_cache: FnvHashMap<u16, CodeBlock>,
 	draw_sprite_interrupt: bool,
-	clear_interrupt: bool
+	clear_interrupt: bool,
+	wait_key_press_interrupt: bool
 }
 
 impl Recompiler {
@@ -17,7 +18,8 @@ impl Recompiler {
 		Recompiler {
 			code_cache: FnvHashMap::default(),
 			draw_sprite_interrupt: false,
-			clear_interrupt: false
+			clear_interrupt: false,
+			wait_key_press_interrupt: false
 		}
 	}
 
@@ -41,6 +43,12 @@ impl Recompiler {
 		else if self.clear_interrupt {
 			chip8.display.clear();
 			self.clear_interrupt = false;
+		}
+		else if self.wait_key_press_interrupt {
+			let high_byte = chip8.memory[chip8.register_pc as usize - 2] as usize;
+			let x = high_byte & 0x0F;
+			chip8.register_v[x] = chip8.keyboard.wait_key_press();
+			self.wait_key_press_interrupt = false;
 		}
 	}
 
@@ -168,17 +176,33 @@ impl Recompiler {
 					break;
 				},
 				(0xE, _, 0x9, 0xE) => {
-					unimplemented!();
+					code_emitter.mov_imm_to_edi(&chip8.keyboard.key_states as *const bool as u32);
+					code_emitter.movzx_m8_to_esi(&chip8.register_v[x] as *const u8);
+					code_emitter.mov_m_to_al_ediesi();
+					code_emitter.cmp_al_with_imm(1);
+					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16);
+					code_emitter.jne(9);
+					code_emitter.add_imm_to_m16(2, &chip8.register_pc as *const u16);
+					break;
 				},
 				(0xE, _, 0xA, 0x1) => {
-					unimplemented!();
+					code_emitter.mov_imm_to_edi(&chip8.keyboard.key_states as *const bool as u32);
+					code_emitter.movzx_m8_to_esi(&chip8.register_v[x] as *const u8);
+					code_emitter.mov_m_to_al_ediesi();
+					code_emitter.cmp_al_with_imm(1);
+					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16);
+					code_emitter.je(9);
+					code_emitter.add_imm_to_m16(2, &chip8.register_pc as *const u16);
+					break;
 				},
 				(0xF, _, 0x0, 0x7) => {
 					code_emitter.mov_m_to_al(&chip8.register_dt as *const u8);
 					code_emitter.mov_al_to_m(&chip8.register_v[x] as *const u8);
 				},
 				(0xF, _, 0x0, 0xA) => {
-					unimplemented!();
+					code_emitter.mov_imm_to_m8(1, &self.wait_key_press_interrupt as *const bool as *const u8);
+					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16);
+					break;
 				},
 				(0xF, _, 0x1, 0x5) => {
 					code_emitter.mov_m_to_al(&chip8.register_v[x] as *const u8);

@@ -7,7 +7,7 @@ const KEY_COUNT: usize = 16;
 
 pub struct Keyboard {
 	events: sdl2::EventPump,
-	key_states: [bool; KEY_COUNT]
+	pub key_states: [bool; KEY_COUNT]
 }
 
 impl Keyboard {
