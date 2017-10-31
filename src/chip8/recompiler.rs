@@ -1,13 +1,10 @@
-extern crate fnv;
-
-use self::fnv::FnvHashMap;
-
 use chip8::Chip8;
 use chip8::codeblock::CodeBlock;
 use chip8::codeemitter::CodeEmitter;
+use chip8::codecache::CodeCache;
 
 pub struct Recompiler {
-	code_cache: FnvHashMap<u16, CodeBlock>,
+	code_cache: CodeCache,
 	draw_sprite_interrupt: bool,
 	clear_interrupt: bool,
 	wait_key_press_interrupt: bool
@@ -16,7 +13,7 @@ pub struct Recompiler {
 impl Recompiler {
 	pub fn new() -> Recompiler {
 		Recompiler {
-			code_cache: FnvHashMap::default(),
+			code_cache: CodeCache::new(),
 			draw_sprite_interrupt: false,
 			clear_interrupt: false,
 			wait_key_press_interrupt: false
@@ -24,11 +21,11 @@ impl Recompiler {
 	}
 
 	pub fn execute_next_code_block(&mut self, chip8: &mut Chip8) {
-		if !self.code_cache.contains_key(&chip8.register_pc) {
+		if !self.code_cache.contains_address(chip8.register_pc) {
 			let code_block = self.recompile_next_code_block(chip8);
 			self.code_cache.insert(chip8.register_pc, code_block);
 		}
-		self.code_cache[&chip8.register_pc].execute();
+		self.code_cache[chip8.register_pc].execute();
 
 		if self.draw_sprite_interrupt {
 			let high_byte = chip8.memory[chip8.register_pc as usize - 2] as usize;

@@ -58,6 +58,7 @@ impl Keyboard {
 		}
 	}
 
+	#[cfg(feature="interpreter")]
 	pub fn is_pressed(&mut self, key: u8) -> bool {
 		self.key_states[key as usize]
 	}

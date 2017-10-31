@@ -7,10 +7,12 @@ authors = ["rwilfried <wilfried.rabouin@gmail.com>"]
 rand = "0.3"
 sdl2 = "0.30"
 memmap = "0.5.2"
-fnv = "1.0.3"
 
 [features]
 # no features by default
 default = []
 debugger = []
 interpreter = []
+
+[profile.release]
+lto = true
