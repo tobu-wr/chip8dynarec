@@ -6,16 +6,14 @@ pub struct Interpreter;
 
 impl Interpreter {
 	pub fn execute_next_instruction(chip8: &mut Chip8) {
-		// fetch
 		let high_byte = chip8.memory[chip8.register_pc as usize];
 		let low_byte = chip8.memory[chip8.register_pc as usize + 1];
 		let opcode = (high_byte >> 4, high_byte & 0x0F, low_byte >> 4, low_byte & 0x0F);
-		chip8.register_pc += 2;
-
-		// decode & execute
 		let nnn = ((high_byte as u16 & 0x0F) << 8) | low_byte as u16;
 		let x = high_byte as usize & 0x0F;
 		let y = low_byte as usize >> 4;
+
+		chip8.register_pc += 2;
 
 		match opcode {
 			(0x0, 0x0, 0xE, 0x0) => chip8.display.clear(),

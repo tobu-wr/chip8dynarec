@@ -105,7 +105,12 @@ impl Recompiler {
 					break;
 				},
 				(0x5, _, _, 0x0) => {
-					unimplemented!();
+					code_emitter.mov_m_to_al(&chip8.register_v[x] as *const u8);
+					code_emitter.cmp_m_with_al(&chip8.register_v[y] as *const u8);
+					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16);
+					code_emitter.jne(9);
+					code_emitter.add_imm_to_m16(2, &chip8.register_pc as *const u16);
+					break;
 				},
 				(0x6, ..) => code_emitter.mov_imm_to_m8(low_byte, &chip8.register_v[x] as *const u8),
 				(0x7, ..) => code_emitter.add_imm_to_m8(low_byte, &chip8.register_v[x] as *const u8),
@@ -114,14 +119,16 @@ impl Recompiler {
 					code_emitter.mov_al_to_m(&chip8.register_v[x] as *const u8);
 				},
 				(0x8, _, _, 0x1) => {
-					unimplemented!();
+					code_emitter.mov_m_to_al(&chip8.register_v[y] as *const u8);
+					code_emitter.or_m_al(&chip8.register_v[x] as *const u8);
 				},
 				(0x8, _, _, 0x2) => {
 					code_emitter.mov_m_to_al(&chip8.register_v[y] as *const u8);
 					code_emitter.and_m_al(&chip8.register_v[x] as *const u8);
 				},
 				(0x8, _, _, 0x3) => {
-					unimplemented!();
+					code_emitter.mov_m_to_al(&chip8.register_v[y] as *const u8);
+					code_emitter.xor_m_al(&chip8.register_v[x] as *const u8);
 				},
 				(0x8, _, _, 0x4) => {
 					code_emitter.movzx_m_to_ax(&chip8.register_v[x] as *const u8);
@@ -138,7 +145,12 @@ impl Recompiler {
 					code_emitter.mov_al_to_m(&chip8.register_v[x] as *const u8);
 				},
 				(0x8, _, _, 0x6) => {
-					unimplemented!();
+					code_emitter.mov_m_to_al(&chip8.register_v[y] as *const u8);
+					code_emitter.mov_al_to_cl();
+					code_emitter.and_cl_imm(1);
+					code_emitter.mov_cl_to_m(&chip8.register_v[0xF] as *const u8);
+					code_emitter.shr_al();
+					code_emitter.mov_al_to_m(&chip8.register_v[x] as *const u8);
 				},
 				(0x8, _, _, 0x7) => {
 					code_emitter.mov_m_to_al(&chip8.register_v[y] as *const u8);
@@ -163,7 +175,10 @@ impl Recompiler {
 				},
 				(0xA, ..) => code_emitter.mov_imm_to_m16(nnn, &chip8.register_i as *const u16),
 				(0xB, ..) => {
-					unimplemented!();
+					code_emitter.movzx_m_to_ax(&chip8.register_v[0] as *const u8);
+					code_emitter.add_imm_to_ax(nnn);
+					code_emitter.mov_ax_to_m(&chip8.register_pc as *const u16);
+					break;
 				},
 				(0xC, ..) => {
 					code_emitter.rdrand_ax();
@@ -209,7 +224,8 @@ impl Recompiler {
 					code_emitter.mov_al_to_m(&chip8.register_dt as *const u8);
 				},
 				(0xF, _, 0x1, 0x8) => {
-					unimplemented!();
+					code_emitter.mov_m_to_al(&chip8.register_v[x] as *const u8);
+					code_emitter.mov_al_to_m(&chip8.register_st as *const u8);
 				},
 				(0xF, _, 0x1, 0xE) => {
 					code_emitter.movzx_m_to_ax(&chip8.register_v[x] as *const u8);

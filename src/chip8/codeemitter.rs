@@ -20,6 +20,13 @@ impl CodeEmitter {
 		self.raw_code.push(0xC8);
 	}
 
+	pub fn add_imm_to_ax(&mut self, imm: u16) {
+		self.raw_code.push(0x66);
+		self.raw_code.push(0x05);
+		self.raw_code.push(imm as u8);
+		self.raw_code.push((imm >> 8) as u8);
+	}
+
 	pub fn add_ax_to_m(&mut self, m: *const u16) {
 		self.raw_code.push(0x66);
 		self.raw_code.push(0x01);
@@ -57,6 +64,12 @@ impl CodeEmitter {
 
 	pub fn and_al_imm(&mut self, imm: u8) {
 		self.raw_code.push(0x24);
+		self.raw_code.push(imm);
+	}
+
+	pub fn and_cl_imm(&mut self, imm: u8) {
+		self.raw_code.push(0x80);
+		self.raw_code.push(0xE1);
 		self.raw_code.push(imm);
 	}
 
@@ -118,6 +131,11 @@ impl CodeEmitter {
 		self.raw_code.push(disp as u8);
 	}
 
+	pub fn mov_al_to_cl(&mut self) {
+		self.raw_code.push(0x88);
+		self.raw_code.push(0xC1);
+	}
+
 	pub fn mov_imm_to_al(&mut self, imm: u8) {
 		self.raw_code.push(0xB0);
 		self.raw_code.push(imm);
@@ -134,6 +152,16 @@ impl CodeEmitter {
 		self.raw_code.push((imm >> 8) as u8);
 		self.raw_code.push((imm >> 16) as u8);
 		self.raw_code.push((imm >> 24) as u8);
+	}
+
+	pub fn mov_cl_to_m(&mut self, m: *const u8) {
+		self.raw_code.push(0x88);
+		self.raw_code.push(0x0D);
+		let disp = m as u32;
+		self.raw_code.push(disp as u8);
+		self.raw_code.push((disp >> 8) as u8);
+		self.raw_code.push((disp >> 16) as u8);
+		self.raw_code.push((disp >> 24) as u8);
 	}
 
 	pub fn mov_al_to_m(&mut self, m: *const u8) {
@@ -290,6 +318,16 @@ impl CodeEmitter {
 		self.raw_code.push((disp >> 24) as u8);
 	}
 
+	pub fn or_m_al(&mut self, m: *const u8) {
+		self.raw_code.push(0x08);
+		self.raw_code.push(0x05);
+		let disp = m as u32;
+		self.raw_code.push(disp as u8);
+		self.raw_code.push((disp >> 8) as u8);
+		self.raw_code.push((disp >> 16) as u8);
+		self.raw_code.push((disp >> 24) as u8);
+	}
+
 	pub fn popa(&mut self) {
 		self.raw_code.push(0x61);
 	}
@@ -331,6 +369,11 @@ impl CodeEmitter {
 		self.raw_code.push((disp >> 24) as u8);
 	}
 
+	pub fn shr_al(&mut self) {
+		self.raw_code.push(0xD0);
+		self.raw_code.push(0xE8);
+	}
+
 	pub fn shr_al_imm(&mut self, imm: u8) {
 		self.raw_code.push(0xC0);
 		self.raw_code.push(0xE8);
@@ -356,5 +399,15 @@ impl CodeEmitter {
 		self.raw_code.push((disp >> 16) as u8);
 		self.raw_code.push((disp >> 24) as u8);
 		self.raw_code.push(imm);
+	}
+
+	pub fn xor_m_al(&mut self, m: *const u8) {
+		self.raw_code.push(0x30);
+		self.raw_code.push(0x05);
+		let disp = m as u32;
+		self.raw_code.push(disp as u8);
+		self.raw_code.push((disp >> 8) as u8);
+		self.raw_code.push((disp >> 16) as u8);
+		self.raw_code.push((disp >> 24) as u8);
 	}
 }
