@@ -7,7 +7,9 @@ pub struct Recompiler {
 	code_cache: CodeCache,
 	draw_sprite_interrupt: bool,
 	clear_interrupt: bool,
-	wait_key_press_interrupt: bool
+	wait_key_press_interrupt: bool,
+	is_pressed_interrupt: bool,
+	is_not_pressed_interrupt: bool
 }
 
 impl Recompiler {
@@ -16,7 +18,9 @@ impl Recompiler {
 			code_cache: CodeCache::new(),
 			draw_sprite_interrupt: false,
 			clear_interrupt: false,
-			wait_key_press_interrupt: false
+			wait_key_press_interrupt: false,
+			is_pressed_interrupt: false,
+			is_not_pressed_interrupt: false
 		}
 	}
 
@@ -46,6 +50,22 @@ impl Recompiler {
 			let x = high_byte & 0x0F;
 			chip8.register_v[x] = chip8.keyboard.wait_key_press();
 			self.wait_key_press_interrupt = false;
+		}
+		else if self.is_pressed_interrupt {
+			let high_byte = chip8.memory[chip8.register_pc as usize - 2] as usize;
+			let x = high_byte & 0x0F;
+			if chip8.keyboard.is_pressed(chip8.register_v[x]) {
+				chip8.register_pc += 2;
+			}
+			self.is_pressed_interrupt = false;
+		}
+		else if self.is_not_pressed_interrupt {
+			let high_byte = chip8.memory[chip8.register_pc as usize - 2] as usize;
+			let x = high_byte & 0x0F;
+			if !chip8.keyboard.is_pressed(chip8.register_v[x]) {
+				chip8.register_pc += 2;
+			}
+			self.is_not_pressed_interrupt = false;
 		}
 	}
 
@@ -188,23 +208,13 @@ impl Recompiler {
 					break;
 				},
 				(0xE, _, 0x9, 0xE) => {
-					code_emitter.mov_imm_to_edi(&chip8.keyboard.key_states as *const bool as u32);
-					code_emitter.movzx_m8_to_esi(&chip8.register_v[x] as *const u8);
-					code_emitter.mov_m_to_al_ediesi();
-					code_emitter.cmp_al_with_imm(1);
+					code_emitter.mov_imm_to_m8(1, &self.is_pressed_interrupt as *const bool as *const u8);
 					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16);
-					code_emitter.jne(9);
-					code_emitter.add_imm_to_m16(2, &chip8.register_pc as *const u16);
 					break;
 				},
 				(0xE, _, 0xA, 0x1) => {
-					code_emitter.mov_imm_to_edi(&chip8.keyboard.key_states as *const bool as u32);
-					code_emitter.movzx_m8_to_esi(&chip8.register_v[x] as *const u8);
-					code_emitter.mov_m_to_al_ediesi();
-					code_emitter.cmp_al_with_imm(1);
+					code_emitter.mov_imm_to_m8(1, &self.is_not_pressed_interrupt as *const bool as *const u8);
 					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc as *const u16);
-					code_emitter.je(9);
-					code_emitter.add_imm_to_m16(2, &chip8.register_pc as *const u16);
 					break;
 				},
 				(0xF, _, 0x0, 0x7) => {

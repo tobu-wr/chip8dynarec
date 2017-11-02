@@ -83,11 +83,6 @@ impl CodeEmitter {
 		self.raw_code.push((disp >> 24) as u8);
 	}
 
-	pub fn cmp_al_with_imm(&mut self, imm: u8) {
-		self.raw_code.push(0x3C);
-		self.raw_code.push(imm);
-	}
-
 	pub fn cmp_ax_with_imm(&mut self, imm: u16) {
 		self.raw_code.push(0x66);
 		self.raw_code.push(0x3D);
