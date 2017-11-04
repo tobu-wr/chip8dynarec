@@ -37,3 +37,16 @@ impl Index<u16> for CodeCache {
 		unsafe { self.code_blocks[address as usize].as_ref().unwrap() }
     }
 }
+
+impl Drop for CodeCache {
+	fn drop(&mut self) {
+		for iter in self.code_blocks.iter() {
+			if !(*iter).is_null() {
+				unsafe { 
+					ptr::drop_in_place(*iter);
+					libc::free(*iter as *mut libc::c_void);
+				}
+			}
+		}
+	}
+}
