@@ -15,9 +15,11 @@ impl CodeBlock {
 			function_pointer: ||{}
 		};
 
-		unsafe { code_block.executable_code.as_mut_slice() }.copy_from_slice(&raw_code);
-		let _ = code_block.executable_code.set_protection(Protection::ReadExecute);
-		code_block.function_pointer = unsafe { mem::transmute(code_block.executable_code.mut_ptr()) };
+		unsafe { 
+			code_block.executable_code.as_mut_slice().copy_from_slice(&raw_code);
+			let _ = code_block.executable_code.set_protection(Protection::ReadExecute);
+			code_block.function_pointer = mem::transmute(code_block.executable_code.mut_ptr());
+		}
 		
 		code_block
 	}

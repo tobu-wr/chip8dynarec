@@ -17,7 +17,7 @@ impl CodeCache {
 		}
 	}
 
-	pub fn contains_address(&self, address: u16) -> bool {
+	pub fn contains_block(&self, address: u16) -> bool {
 		!self.code_blocks[address as usize].is_null()
 	}
 

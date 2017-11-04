@@ -154,12 +154,7 @@ impl Chip8 {
 		let mut file = File::open(filename).expect("file not found");
 		let mut buffer: Vec<u8> = Vec::new();
 		file.read_to_end(&mut buffer).expect("something went wrong reading the file");
-
-		let mut i = ROM_START_ADDRESS as usize;
-		for byte in buffer {
-			self.memory[i] = byte;
-			i += 1;
-		}
+		self.memory[ROM_START_ADDRESS as usize..ROM_START_ADDRESS as usize + buffer.len()].copy_from_slice(&buffer);
 	}
 
 	#[cfg(feature="debugger")]
