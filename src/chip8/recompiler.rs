@@ -269,7 +269,7 @@ impl Recompiler {
 						code_emitter.mov_imm_to_edi(&chip8.memory[i] as *const u8 as u32);
 						code_emitter.mov_al_to_m_ediesi();
 					}
-					code_emitter.add_imm_to_m16(x as u16, &chip8.register_i as *const u16);
+					code_emitter.add_imm_to_m16(x as u16 + 1, &chip8.register_i as *const u16);
 				},
 				(0xF, _, 0x6, 0x5) => {
 					code_emitter.movzx_m16_to_esi(&chip8.register_i as *const u16);
@@ -278,7 +278,7 @@ impl Recompiler {
 						code_emitter.mov_m_to_al_ediesi();
 						code_emitter.mov_al_to_m(&chip8.register_v[i] as *const u8);
 					}
-					code_emitter.add_imm_to_m16(x as u16, &chip8.register_i as *const u16);
+					code_emitter.add_imm_to_m16(x as u16 + 1, &chip8.register_i as *const u16);
 				},
 				_ => panic!("unknown opcode")
 			}
