@@ -99,13 +99,17 @@ impl Recompiler {
 					code_emitter.sub_imm_to_m8(1, &chip8.register_sp as *const i8 as *const u8);
 					break;
 				},
-				(0x1, ..) => register_pc = nnn,
+				(0x1, ..) => { 
+					code_emitter.mov_imm_to_m16(nnn, &chip8.register_pc as *const u16);
+					break;
+				},
 				(0x2, ..) => {
 					code_emitter.add_imm_to_m8(1, &chip8.register_sp as *const i8 as *const u8);
 					code_emitter.movzx_m8_to_esi(&chip8.register_sp as *const i8 as *const u8);
 					code_emitter.mov_imm_to_edi(&chip8.stack[0] as *const u16 as u32);
 					code_emitter.mov_imm_to_m16_edi2esi(register_pc);
-					register_pc = nnn;
+					code_emitter.mov_imm_to_m16(nnn, &chip8.register_pc as *const u16);
+					break;
 				},
 				(0x3, ..) => {
 					code_emitter.cmp_imm_with_m8(low_byte, &chip8.register_v[x] as *const u8);
