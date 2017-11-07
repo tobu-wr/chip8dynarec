@@ -20,7 +20,7 @@ impl Keyboard {
 		self.events.pump_events();
 	}
 
-	pub fn is_pressed(&mut self, key: u8) -> bool {
+	pub extern "stdcall" fn is_pressed(&self, key: u8) -> bool {
 		let pressed_keys: HashSet<Keycode> = self.events.keyboard_state().pressed_scancodes().filter_map(Keycode::from_scancode).collect();
 		match key {
 			0x0 => pressed_keys.contains(&Keycode::Kp0),
@@ -43,7 +43,7 @@ impl Keyboard {
 		}
 	}
 
-	pub fn wait_key_press(&mut self) -> u8 {
+	pub extern "stdcall" fn wait_key_press(&mut self) -> u8 {
 		loop {
 			for event in self.events.wait_iter() {
 				match event {

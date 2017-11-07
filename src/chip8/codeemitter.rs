@@ -42,6 +42,11 @@ impl CodeEmitter {
 		self.push_u16(imm);
 	}
 
+	pub fn add_imm_to_eax(&mut self, imm: u32) {
+		self.push_u8(0x05);
+		self.push_u32(imm);
+	}
+
 	pub fn add_ax_to_m(&mut self, m: *const u16) {
 		self.push_u8(0x66);
 		self.push_u8(0x01);
@@ -79,6 +84,16 @@ impl CodeEmitter {
 		self.push_u8(0x20);
 		self.push_u8(0x05);
 		self.push_u32(m as u32);
+	}
+
+	pub fn call_eax(&mut self) {
+		self.push_u8(0xFF);
+		self.push_u8(0xD0);
+	}
+
+	pub fn cmp_al_with_imm(&mut self, imm: u8) {
+		self.push_u8(0x3C);
+		self.push_u8(imm);
 	}
 
 	pub fn cmp_ax_with_imm(&mut self, imm: u16) {
@@ -132,6 +147,11 @@ impl CodeEmitter {
 
 	pub fn mov_imm_to_edi(&mut self, imm: u32) {
 		self.push_u8(0xBF);
+		self.push_u32(imm);
+	}
+
+	pub fn mov_imm_to_eax(&mut self, imm: u32) {
+		self.push_u8(0xB8);
 		self.push_u32(imm);
 	}
 
@@ -225,6 +245,20 @@ impl CodeEmitter {
 		self.push_u32(m as u32);
 	}
 
+	pub fn movzx_m8_to_eax(&mut self, m: *const u8) {
+		self.push_u8(0x0F);
+		self.push_u8(0xB6);
+		self.push_u8(0x05);
+		self.push_u32(m as u32);
+	}
+
+	pub fn movzx_m16_to_eax(&mut self, m: *const u16) {
+		self.push_u8(0x0F);
+		self.push_u8(0xB7);
+		self.push_u8(0x05);
+		self.push_u32(m as u32);
+	}
+
 	pub fn movzx_m_to_cx(&mut self, m: *const u8) {
 		self.push_u8(0x66);
 		self.push_u8(0x0F);
@@ -265,6 +299,15 @@ impl CodeEmitter {
 
 	pub fn pusha(&mut self) {
 		self.push_u8(0x60);
+	}
+
+	pub fn push_eax(&mut self) {
+		self.push_u8(0x50);
+	}
+
+	pub fn push_imm32(&mut self, imm: u32) {
+		self.push_u8(0x68);
+		self.push_u32(imm);
 	}
 
 	pub fn rdrand_ax(&mut self) {

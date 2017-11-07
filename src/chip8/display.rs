@@ -29,7 +29,7 @@ impl Display {
 		}
 	}
 
-	pub fn clear(&mut self) {
+	pub extern "stdcall" fn clear(&mut self) {
 		for y in 0..DISPLAY_HEIGHT {
 			for x in 0..DISPLAY_WIDTH {
 				self.frame_buffer[y * DISPLAY_WIDTH + x] = 0;
@@ -37,7 +37,7 @@ impl Display {
 		}
 	}
 
-	pub fn draw_sprite(&mut self, x_position: u8, mut y_position: u8, sprite: &[u8]) -> bool {
+	pub extern "stdcall" fn draw_sprite(&mut self, x_position: u8, mut y_position: u8, sprite: &[u8]) -> bool {
 		let mut pixel_erased = false;
 		y_position %= DISPLAY_HEIGHT as u8;
 
