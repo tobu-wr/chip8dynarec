@@ -19,11 +19,11 @@ impl Interpreter {
 			(0x0, 0x0, 0xE, 0x0) => chip8.display.clear(),
 			(0x0, 0x0, 0xE, 0xE) => {
 				chip8.register_pc = chip8.stack[chip8.register_sp as usize];
-				chip8.register_sp -= 1;
+				chip8.register_sp = chip8.register_sp.wrapping_sub(1);
 			},
 			(0x1, ..) => chip8.register_pc = nnn,
 			(0x2, ..) => {
-				chip8.register_sp += 1;
+				chip8.register_sp = chip8.register_sp.wrapping_add(1);
 				chip8.stack[chip8.register_sp as usize] = chip8.register_pc;
 				chip8.register_pc = nnn;
 			},

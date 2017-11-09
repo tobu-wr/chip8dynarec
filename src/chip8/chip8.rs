@@ -29,7 +29,7 @@ pub struct Chip8 {
 	pub register_dt: u8,
 	pub register_st: u8,
 	pub register_pc: u16,
-	pub register_sp: i8,
+	pub register_sp: u8,
 	pub keyboard: Keyboard,
 	pub display: Display
 }
@@ -46,7 +46,7 @@ impl Chip8 {
 			register_dt: 0,
 			register_st: 0,
 			register_pc: ROM_START_ADDRESS,
-			register_sp: -1,
+			register_sp: 0xFF,
 			keyboard: Keyboard::new(&sdl_context),
 			display: Display::new(&sdl_context)
 		};

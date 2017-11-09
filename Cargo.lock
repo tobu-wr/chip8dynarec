@@ -1,4 +1,9 @@
-[root]
+[[package]]
+name = "bitflags"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
 name = "chip8dynarec"
 version = "0.1.0"
 dependencies = [
@@ -7,11 +12,6 @@ dependencies = [
  "rand 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.30.0 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
-
-[[package]]
-name = "bitflags"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "conv"

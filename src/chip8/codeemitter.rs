@@ -47,25 +47,25 @@ impl CodeEmitter {
 		self.push_u32(imm);
 	}
 
-	pub fn add_ax_to_m(&mut self, m: *const u16) {
+	pub fn add_ax_to_m(&mut self, m: &u16) {
 		self.push_u8(0x66);
 		self.push_u8(0x01);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u16 as u32);
 	}
 
-	pub fn add_imm_to_m8(&mut self, imm: u8, m: *const u8) {
+	pub fn add_imm_to_m8(&mut self, imm: u8, m: &u8) {
 		self.push_u8(0x80);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 		self.push_u8(imm);
 	}
 
-	pub fn add_imm_to_m16(&mut self, imm: u16, m: *const u16) {
+	pub fn add_imm_to_m16(&mut self, imm: u16, m: &u16) {
 		self.push_u8(0x66);
 		self.push_u8(0x81);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u16 as u32);
 		self.push_u16(imm);
 	}
 
@@ -80,10 +80,10 @@ impl CodeEmitter {
 		self.push_u8(imm);
 	}
 
-	pub fn and_m_al(&mut self, m: *const u8) {
+	pub fn and_m_al(&mut self, m: &u8) {
 		self.push_u8(0x20);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
 	pub fn call_eax(&mut self) {
@@ -102,16 +102,16 @@ impl CodeEmitter {
 		self.push_u16(imm);
 	}
 
-	pub fn cmp_m_with_al(&mut self, m: *const u8) {
+	pub fn cmp_m_with_al(&mut self, m: &u8) {
 		self.push_u8(0x3A);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
-	pub fn cmp_imm_with_m8(&mut self, imm: u8, m: *const u8) {
+	pub fn cmp_imm_with_m8(&mut self, imm: u8, m: &u8) {
 		self.push_u8(0x80);
 		self.push_u8(0x3D);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 		self.push_u8(imm);
 	}
 
@@ -155,15 +155,15 @@ impl CodeEmitter {
 		self.push_u32(imm);
 	}
 
-	pub fn mov_cl_to_m(&mut self, m: *const u8) {
+	pub fn mov_cl_to_m(&mut self, m: &u8) {
 		self.push_u8(0x88);
 		self.push_u8(0x0D);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
-	pub fn mov_al_to_m(&mut self, m: *const u8) {
+	pub fn mov_al_to_m(&mut self, m: &u8) {
 		self.push_u8(0xA2);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
 	// mov byte ptr [edi+esi],ah
@@ -180,15 +180,15 @@ impl CodeEmitter {
 		self.push_u8(0x37);
 	}
 
-	pub fn mov_ax_to_m(&mut self, m: *const u16) {
+	pub fn mov_ax_to_m(&mut self, m: &u16) {
 		self.push_u8(0x66);
 		self.push_u8(0xA3);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u16 as u32);
 	}
 
-	pub fn mov_m_to_al(&mut self, m: *const u8) {
+	pub fn mov_m_to_al(&mut self, m: &u8) {
 		self.push_u8(0xA0);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
 	// mov al,byte ptr [edi+esi]
@@ -206,18 +206,18 @@ impl CodeEmitter {
 		self.push_u8(0x77);
 	}
 
-	pub fn mov_imm_to_m8(&mut self, imm: u8, m: *const u8) {
+	pub fn mov_imm_to_m8(&mut self, imm: u8, m: &u8) {
 		self.push_u8(0xC6);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 		self.push_u8(imm);
 	}
 
-	pub fn mov_imm_to_m16(&mut self, imm: u16, m: *const u16) {
+	pub fn mov_imm_to_m16(&mut self, imm: u16, m: &u16) {
 		self.push_u8(0x66);
 		self.push_u8(0xC7);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u16 as u32);
 		self.push_u16(imm);
 	}
 
@@ -237,60 +237,60 @@ impl CodeEmitter {
 		self.push_u8(0xC4);
 	}
 
-	pub fn movzx_m_to_ax(&mut self, m: *const u8) {
+	pub fn movzx_m_to_ax(&mut self, m: &u8) {
 		self.push_u8(0x66);
 		self.push_u8(0x0F);
 		self.push_u8(0xB6);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
-	pub fn movzx_m8_to_eax(&mut self, m: *const u8) {
+	pub fn movzx_m8_to_eax(&mut self, m: &u8) {
 		self.push_u8(0x0F);
 		self.push_u8(0xB6);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
-	pub fn movzx_m16_to_eax(&mut self, m: *const u16) {
+	pub fn movzx_m16_to_eax(&mut self, m: &u16) {
 		self.push_u8(0x0F);
 		self.push_u8(0xB7);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u16 as u32);
 	}
 
-	pub fn movzx_m_to_cx(&mut self, m: *const u8) {
+	pub fn movzx_m_to_cx(&mut self, m: &u8) {
 		self.push_u8(0x66);
 		self.push_u8(0x0F);
 		self.push_u8(0xB6);
 		self.push_u8(0x0D);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
-	pub fn movzx_m8_to_esi(&mut self, m: *const u8) {
+	pub fn movzx_m8_to_esi(&mut self, m: &u8) {
 		self.push_u8(0x0F);
 		self.push_u8(0xB6);
 		self.push_u8(0x35);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
-	pub fn movzx_m16_to_esi(&mut self, m: *const u16) {
+	pub fn movzx_m16_to_esi(&mut self, m: &u16) {
 		self.push_u8(0x0F);
 		self.push_u8(0xB7);
 		self.push_u8(0x35);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u16 as u32);
 	}
 
-	pub fn mul_m8(&mut self, m: *const u8) {
+	pub fn mul_m8(&mut self, m: &u8) {
 		self.push_u8(0xF6);
 		self.push_u8(0x25);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
-	pub fn or_m_al(&mut self, m: *const u8) {
+	pub fn or_m_al(&mut self, m: &u8) {
 		self.push_u8(0x08);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
 	pub fn popa(&mut self) {
@@ -321,18 +321,18 @@ impl CodeEmitter {
 		self.push_u8(0xC3);
 	}
 
-	pub fn seta_m(&mut self, m: *const u8) {
+	pub fn seta_m(&mut self, m: &u8) {
 		self.push_u8(0x0F);
 		self.push_u8(0x97);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
-	pub fn setae_m(&mut self, m: *const u8) {
+	pub fn setae_m(&mut self, m: &u8) {
 		self.push_u8(0x0F);
 		self.push_u8(0x93);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
 	pub fn shr_al(&mut self) {
@@ -346,22 +346,22 @@ impl CodeEmitter {
 		self.push_u8(imm);
 	}
 
-	pub fn sub_m_to_al(&mut self, m: *const u8) {
+	pub fn sub_m_to_al(&mut self, m: &u8) {
 		self.push_u8(0x2A);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 
-	pub fn sub_imm_to_m8(&mut self, imm: u8, m: *const u8) {
+	pub fn sub_imm_to_m8(&mut self, imm: u8, m: &u8) {
 		self.push_u8(0x80);
 		self.push_u8(0x2D);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 		self.push_u8(imm);
 	}
 
-	pub fn xor_m_al(&mut self, m: *const u8) {
+	pub fn xor_m_al(&mut self, m: &u8) {
 		self.push_u8(0x30);
 		self.push_u8(0x05);
-		self.push_u32(m as u32);
+		self.push_u32(m as *const u8 as u32);
 	}
 }
