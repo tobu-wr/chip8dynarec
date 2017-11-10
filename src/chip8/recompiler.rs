@@ -28,8 +28,6 @@ impl Recompiler {
 		let mut code_emitter = CodeEmitter::new();
 		let mut register_pc = chip8.register_pc;
 
-		code_emitter.pusha();
-
 		loop {
 			let high_byte = chip8.memory[register_pc as usize];
 			let low_byte = chip8.memory[register_pc as usize + 1];
@@ -47,9 +45,9 @@ impl Recompiler {
 					code_emitter.call_eax();
 				},
 				(0x0, 0x0, 0xE, 0xE) => {
-					code_emitter.movzx_m8_to_esi(&chip8.register_sp);
+					code_emitter.movzx_m8_to_ecx(&chip8.register_sp);
 					code_emitter.mov_imm_to_edi(&chip8.stack[0] as *const u16 as u32);
-					code_emitter.mov_m_to_ax_edi2esi();
+					code_emitter.mov_m_to_ax_edi2ecx();
 					code_emitter.mov_ax_to_m(&chip8.register_pc);
 					code_emitter.sub_imm_to_m8(1, &chip8.register_sp);
 					break;
@@ -60,9 +58,9 @@ impl Recompiler {
 				},
 				(0x2, ..) => {
 					code_emitter.add_imm_to_m8(1, &chip8.register_sp);
-					code_emitter.movzx_m8_to_esi(&chip8.register_sp);
+					code_emitter.movzx_m8_to_ecx(&chip8.register_sp);
 					code_emitter.mov_imm_to_edi(&chip8.stack[0] as *const u16 as u32);
-					code_emitter.mov_imm_to_m16_edi2esi(register_pc);
+					code_emitter.mov_imm_to_m16_edi2ecx(register_pc);
 					code_emitter.mov_imm_to_m16(nnn, &chip8.register_pc);
 					break;
 				},
@@ -230,31 +228,31 @@ impl Recompiler {
 					code_emitter.movzx_m_to_ax(&chip8.register_v[x]);
 					code_emitter.mov_imm_to_dl(100);
 					code_emitter.div_dl();
-					code_emitter.movzx_m16_to_esi(&chip8.register_i);
+					code_emitter.movzx_m16_to_ecx(&chip8.register_i);
 					code_emitter.mov_imm_to_edi(&chip8.memory[0] as *const u8 as u32);
-					code_emitter.mov_al_to_m_ediesi();
+					code_emitter.mov_al_to_m_ediecx();
 					code_emitter.movzx_ah_to_ax();
 					code_emitter.mov_imm_to_dl(10);
 					code_emitter.div_dl();
 					code_emitter.mov_imm_to_edi(&chip8.memory[1] as *const u8 as u32);
-					code_emitter.mov_al_to_m_ediesi();
+					code_emitter.mov_al_to_m_ediecx();
 					code_emitter.mov_imm_to_edi(&chip8.memory[2] as *const u8 as u32);
-					code_emitter.mov_ah_to_m_ediesi();
+					code_emitter.mov_ah_to_m_ediecx();
 				},
 				(0xF, _, 0x5, 0x5) => {
-					code_emitter.movzx_m16_to_esi(&chip8.register_i);
+					code_emitter.movzx_m16_to_ecx(&chip8.register_i);
 					for i in 0..(x + 1) {
 						code_emitter.mov_m_to_al(&chip8.register_v[i]);
 						code_emitter.mov_imm_to_edi(&chip8.memory[i] as *const u8 as u32);
-						code_emitter.mov_al_to_m_ediesi();
+						code_emitter.mov_al_to_m_ediecx();
 					}
 					code_emitter.add_imm_to_m16(x as u16 + 1, &chip8.register_i);
 				},
 				(0xF, _, 0x6, 0x5) => {
-					code_emitter.movzx_m16_to_esi(&chip8.register_i);
+					code_emitter.movzx_m16_to_ecx(&chip8.register_i);
 					for i in 0..(x + 1) {
 						code_emitter.mov_imm_to_edi(&chip8.memory[i] as *const u8 as u32);
-						code_emitter.mov_m_to_al_ediesi();
+						code_emitter.mov_m_to_al_ediecx();
 						code_emitter.mov_al_to_m(&chip8.register_v[i]);
 					}
 					code_emitter.add_imm_to_m16(x as u16 + 1, &chip8.register_i);
@@ -263,7 +261,6 @@ impl Recompiler {
 			}
 		}
 
-		code_emitter.popa();
 		code_emitter.ret();
 
 		CodeBlock::new(code_emitter.raw_code)

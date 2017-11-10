@@ -166,18 +166,18 @@ impl CodeEmitter {
 		self.push_u32(m as *const u8 as u32);
 	}
 
-	// mov byte ptr [edi+esi],ah
-	pub fn mov_ah_to_m_ediesi(&mut self) {
+	// mov byte ptr [edi+ecx],ah
+	pub fn mov_ah_to_m_ediecx(&mut self) {
 		self.push_u8(0x88);
 		self.push_u8(0x24);
-		self.push_u8(0x37);
+		self.push_u8(0x0F);
 	}
 
-	// mov byte ptr [edi+esi],al
-	pub fn mov_al_to_m_ediesi(&mut self) {
+	// mov byte ptr [edi+ecx],al
+	pub fn mov_al_to_m_ediecx(&mut self) {
 		self.push_u8(0x88);
 		self.push_u8(0x04);
-		self.push_u8(0x37);
+		self.push_u8(0x0F);
 	}
 
 	pub fn mov_ax_to_m(&mut self, m: &u16) {
@@ -191,19 +191,19 @@ impl CodeEmitter {
 		self.push_u32(m as *const u8 as u32);
 	}
 
-	// mov al,byte ptr [edi+esi]
-	pub fn mov_m_to_al_ediesi(&mut self) {
+	// mov al,byte ptr [edi+ecx]
+	pub fn mov_m_to_al_ediecx(&mut self) {
 		self.push_u8(0x8A);
 		self.push_u8(0x04);
-		self.push_u8(0x37);
+		self.push_u8(0x0F);
 	}
 
-	// mov ax,word ptr [edi+esi*2]
-	pub fn mov_m_to_ax_edi2esi(&mut self) {
+	// mov ax,word ptr [edi+ecx*2]
+	pub fn mov_m_to_ax_edi2ecx(&mut self) {
 		self.push_u8(0x66);
 		self.push_u8(0x8B);
 		self.push_u8(0x04);
-		self.push_u8(0x77);
+		self.push_u8(0x4F);
 	}
 
 	pub fn mov_imm_to_m8(&mut self, imm: u8, m: &u8) {
@@ -221,12 +221,12 @@ impl CodeEmitter {
 		self.push_u16(imm);
 	}
 
-	// mov word ptr [edi+2*esi],imm16
-	pub fn mov_imm_to_m16_edi2esi(&mut self, imm: u16) {
+	// mov word ptr [edi+2*ecx],imm16
+	pub fn mov_imm_to_m16_edi2ecx(&mut self, imm: u16) {
 		self.push_u8(0x66);
 		self.push_u8(0xC7);
 		self.push_u8(0x04);
-		self.push_u8(0x77);
+		self.push_u8(0x4F);
 		self.push_u16(imm);
 	}
 
@@ -267,17 +267,17 @@ impl CodeEmitter {
 		self.push_u32(m as *const u8 as u32);
 	}
 
-	pub fn movzx_m8_to_esi(&mut self, m: &u8) {
+	pub fn movzx_m8_to_ecx(&mut self, m: &u8) {
 		self.push_u8(0x0F);
 		self.push_u8(0xB6);
-		self.push_u8(0x35);
+		self.push_u8(0x0D);
 		self.push_u32(m as *const u8 as u32);
 	}
 
-	pub fn movzx_m16_to_esi(&mut self, m: &u16) {
+	pub fn movzx_m16_to_ecx(&mut self, m: &u16) {
 		self.push_u8(0x0F);
 		self.push_u8(0xB7);
-		self.push_u8(0x35);
+		self.push_u8(0x0D);
 		self.push_u32(m as *const u16 as u32);
 	}
 
@@ -291,14 +291,6 @@ impl CodeEmitter {
 		self.push_u8(0x08);
 		self.push_u8(0x05);
 		self.push_u32(m as *const u8 as u32);
-	}
-
-	pub fn popa(&mut self) {
-		self.push_u8(0x61);
-	}
-
-	pub fn pusha(&mut self) {
-		self.push_u8(0x60);
 	}
 
 	pub fn push_eax(&mut self) {
