@@ -192,7 +192,7 @@ impl Chip8 {
 		self.load_rom(filename);
 
 		#[cfg(not(feature="interpreter"))]
-		let mut recompiler = Recompiler::new();
+		let mut recompiler = Recompiler::new(&self.register_pc);
 		
 		loop {
 			#[cfg(feature="debugger")]

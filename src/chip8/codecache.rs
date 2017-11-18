@@ -15,7 +15,7 @@ pub struct CodeCache {
 }
 
 impl CodeCache {
-	pub fn new() -> CodeCache {
+	pub fn new(register_pc: &u16) -> CodeCache {
 		let mut code_cache = CodeCache {
 			x86_block_addresses: [0; MEMORY_SIZE],
 			reserved: [false; MEMORY_SIZE],
@@ -24,6 +24,7 @@ impl CodeCache {
 
 		for i in ROM_START_ADDRESS..MEMORY_SIZE as u16 {
 			let mut code_emitter = CodeEmitter::new();
+			code_emitter.mov_imm_to_m16(i, register_pc);
 			code_emitter.ret();
 			unsafe {
 				let new_ptr = libc::malloc(mem::size_of::<CodeBlock>()) as *mut CodeBlock;

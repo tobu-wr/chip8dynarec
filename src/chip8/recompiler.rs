@@ -10,9 +10,9 @@ pub struct Recompiler {
 }
 
 impl Recompiler {
-	pub fn new() -> Recompiler {
+	pub fn new(register_pc: &u16) -> Recompiler {
 		Recompiler {
-			code_cache: CodeCache::new()
+			code_cache: CodeCache::new(register_pc)
 		}
 	}
 
@@ -51,22 +51,19 @@ impl Recompiler {
 					code_emitter.call_eax();
 				},
 				(0x0, 0x0, 0xE, 0xE) => {
-					code_emitter.movzx_m8_to_ecx(&chip8.register_sp);
-					code_emitter.mov_imm_to_edi(&chip8.stack[0] as *const u16 as u32);
-					code_emitter.mov_m_to_ax_edi2ecx();
-					code_emitter.mov_ax_to_m(&chip8.register_pc);
-					code_emitter.sub_imm_to_m8(1, &chip8.register_sp);
 					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+					code_emitter.movzx_m8_to_ecx(&chip8.register_sp);
+					code_emitter.sub_imm_to_m8(1, &chip8.register_sp);
+					code_emitter.mov_imm_to_edi(&chip8.stack[0] as *const u16 as u32);
+					code_emitter.movzx_m16_to_ecx_edi2ecx();
 
 					// jump to next block
 					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
-					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
 					code_emitter.mov_m_to_eax_edi4ecx();
 					code_emitter.jmp_eax();
 					break;
 				},
 				(0x1, ..) => { 
-					code_emitter.mov_imm_to_m16(nnn, &chip8.register_pc);
 					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
 
 					// jump to next block
@@ -79,7 +76,6 @@ impl Recompiler {
 					code_emitter.movzx_m8_to_ecx(&chip8.register_sp);
 					code_emitter.mov_imm_to_edi(&chip8.stack[0] as *const u16 as u32);
 					code_emitter.mov_imm_to_m16_edi2ecx(register_pc);
-					code_emitter.mov_imm_to_m16(nnn, &chip8.register_pc);
 					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
 
 					// jump to next block
@@ -88,45 +84,45 @@ impl Recompiler {
 					break;
 				},
 				(0x3, ..) => {
-					code_emitter.cmp_imm_with_m8(low_byte, &chip8.register_v[x]);
-					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc);
-					code_emitter.jne(9);
-					code_emitter.add_imm_to_m16(2, &chip8.register_pc);
 					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+					code_emitter.cmp_imm_with_m8(low_byte, &chip8.register_v[x]);
+					code_emitter.jne(7);
 
-					// jump to next block
-					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
-					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
-					code_emitter.mov_m_to_eax_edi4ecx();
+					// jump to next block (PC+2)
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[register_pc as usize + 2]);
+					code_emitter.jmp_eax();
+
+					// jump to next block (PC)
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[register_pc as usize]);
 					code_emitter.jmp_eax();
 					break;
 				},
 				(0x4, ..) => {
-					code_emitter.cmp_imm_with_m8(low_byte, &chip8.register_v[x]);
-					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc);
-					code_emitter.je(9);
-					code_emitter.add_imm_to_m16(2, &chip8.register_pc);
 					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+					code_emitter.cmp_imm_with_m8(low_byte, &chip8.register_v[x]);
+					code_emitter.je(7);
 
-					// jump to next block
-					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
-					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
-					code_emitter.mov_m_to_eax_edi4ecx();
+					// jump to next block (PC+2)
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[register_pc as usize + 2]);
+					code_emitter.jmp_eax();
+					
+					// jump to next block (PC)
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[register_pc as usize]);
 					code_emitter.jmp_eax();
 					break;
 				},
 				(0x5, _, _, 0x0) => {
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
 					code_emitter.mov_m_to_al(&chip8.register_v[x]);
 					code_emitter.cmp_m_with_al(&chip8.register_v[y]);
-					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc);
-					code_emitter.jne(9);
-					code_emitter.add_imm_to_m16(2, &chip8.register_pc);
-					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+					code_emitter.jne(7);
 
-					// jump to next block
-					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
-					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
-					code_emitter.mov_m_to_eax_edi4ecx();
+					// jump to next block (PC+2)
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[register_pc as usize + 2]);
+					code_emitter.jmp_eax();
+					
+					// jump to next block (PC)
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[register_pc as usize]);
 					code_emitter.jmp_eax();
 					break;
 				},
@@ -184,30 +180,28 @@ impl Recompiler {
 					code_emitter.mov_al_to_m(&chip8.register_v[x]);
 				},
 				(0x9, _, _, 0x0) => {
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
 					code_emitter.mov_m_to_al(&chip8.register_v[x]);
 					code_emitter.cmp_m_with_al(&chip8.register_v[y]);
-					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc);
-					code_emitter.je(9);
-					code_emitter.add_imm_to_m16(2, &chip8.register_pc);
-					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+					code_emitter.je(7);
 
-					// jump to next block
-					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
-					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
-					code_emitter.mov_m_to_eax_edi4ecx();
+					// jump to next block (PC+2)
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[register_pc as usize + 2]);
+					code_emitter.jmp_eax();
+					
+					// jump to next block (PC)
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[register_pc as usize]);
 					code_emitter.jmp_eax();
 					break;
 				},
 				(0xA, ..) => code_emitter.mov_imm_to_m16(nnn, &chip8.register_i),
 				(0xB, ..) => {
-					code_emitter.movzx_m_to_ax(&chip8.register_v[0]);
-					code_emitter.add_imm_to_ax(nnn);
-					code_emitter.mov_ax_to_m(&chip8.register_pc);
 					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+					code_emitter.movzx_m8_to_ecx(&chip8.register_v[0]);
+					code_emitter.add_imm_to_ecx(nnn as u32);
 
 					// jump to next block
 					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
-					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
 					code_emitter.mov_m_to_eax_edi4ecx();
 					code_emitter.jmp_eax();
 					break;
@@ -232,40 +226,40 @@ impl Recompiler {
 					code_emitter.mov_al_to_m(&chip8.register_v[0xF]);
 				},
 				(0xE, _, 0x9, 0xE) => {
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
 					code_emitter.movzx_m8_to_eax(&chip8.register_v[x]);
 					code_emitter.push_eax();
 					code_emitter.push_imm32(&chip8.keyboard as *const Keyboard as u32);
 					code_emitter.mov_imm_to_eax(Keyboard::is_pressed as extern "stdcall" fn(&Keyboard, u8) -> bool as u32);
 					code_emitter.call_eax();
 					code_emitter.cmp_al_with_imm(1);
-					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc);
-					code_emitter.jne(9);
-					code_emitter.add_imm_to_m16(2, &chip8.register_pc);
-					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
-
-					// jump to next block
-					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
-					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
-					code_emitter.mov_m_to_eax_edi4ecx();
+					code_emitter.jne(7);
+					
+					// jump to next block (PC+2)
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[register_pc as usize + 2]);
+					code_emitter.jmp_eax();
+					
+					// jump to next block (PC)
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[register_pc as usize]);
 					code_emitter.jmp_eax();
 					break;
 				},
 				(0xE, _, 0xA, 0x1) => {
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
 					code_emitter.movzx_m8_to_eax(&chip8.register_v[x]);
 					code_emitter.push_eax();
 					code_emitter.push_imm32(&chip8.keyboard as *const Keyboard as u32);
 					code_emitter.mov_imm_to_eax(Keyboard::is_pressed as extern "stdcall" fn(&Keyboard, u8) -> bool as u32);
 					code_emitter.call_eax();
 					code_emitter.cmp_al_with_imm(1);
-					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc);
-					code_emitter.je(9);
-					code_emitter.add_imm_to_m16(2, &chip8.register_pc);
-					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+					code_emitter.je(7);
 
-					// jump to next block
-					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
-					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
-					code_emitter.mov_m_to_eax_edi4ecx();
+					// jump to next block (PC+2)
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[register_pc as usize + 2]);
+					code_emitter.jmp_eax();
+					
+					// jump to next block (PC)
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[register_pc as usize]);
 					code_emitter.jmp_eax();
 					break;
 				},
