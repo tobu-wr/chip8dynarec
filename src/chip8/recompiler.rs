@@ -18,13 +18,19 @@ impl Recompiler {
 
 	pub fn execute_next_code_block(&mut self, chip8: &Chip8) {
 		if !self.code_cache.contains_block(chip8.register_pc) {
-			let code_block = Recompiler::recompile_next_code_block(chip8);
+			let code_block = self.recompile_next_code_block(chip8);
 			self.code_cache.insert(chip8.register_pc, code_block);
 		}
 		self.code_cache[chip8.register_pc].execute();
 	}
 
-	fn recompile_next_code_block(chip8: &Chip8) -> CodeBlock {
+	fn emit_call_refresh(code_emitter: &mut CodeEmitter, chip8: &Chip8) {
+		code_emitter.push_imm32(chip8 as *const Chip8 as u32);
+		code_emitter.mov_imm_to_eax(Chip8::refresh as extern "stdcall" fn(&mut Chip8) as u32);
+		code_emitter.call_eax();
+	}
+
+	fn recompile_next_code_block(&self, chip8: &Chip8) -> CodeBlock {
 		let mut code_emitter = CodeEmitter::new();
 		let mut register_pc = chip8.register_pc;
 
@@ -50,10 +56,22 @@ impl Recompiler {
 					code_emitter.mov_m_to_ax_edi2ecx();
 					code_emitter.mov_ax_to_m(&chip8.register_pc);
 					code_emitter.sub_imm_to_m8(1, &chip8.register_sp);
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+
+					// jump to next block
+					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
+					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
+					code_emitter.mov_m_to_eax_edi4ecx();
+					code_emitter.jmp_eax();
 					break;
 				},
 				(0x1, ..) => { 
 					code_emitter.mov_imm_to_m16(nnn, &chip8.register_pc);
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+
+					// jump to next block
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[nnn as usize]);
+					code_emitter.jmp_eax();
 					break;
 				},
 				(0x2, ..) => {
@@ -62,6 +80,11 @@ impl Recompiler {
 					code_emitter.mov_imm_to_edi(&chip8.stack[0] as *const u16 as u32);
 					code_emitter.mov_imm_to_m16_edi2ecx(register_pc);
 					code_emitter.mov_imm_to_m16(nnn, &chip8.register_pc);
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+
+					// jump to next block
+					code_emitter.mov_m_to_eax(&self.code_cache.x86_block_addresses[nnn as usize]);
+					code_emitter.jmp_eax();
 					break;
 				},
 				(0x3, ..) => {
@@ -69,6 +92,13 @@ impl Recompiler {
 					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc);
 					code_emitter.jne(9);
 					code_emitter.add_imm_to_m16(2, &chip8.register_pc);
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+
+					// jump to next block
+					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
+					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
+					code_emitter.mov_m_to_eax_edi4ecx();
+					code_emitter.jmp_eax();
 					break;
 				},
 				(0x4, ..) => {
@@ -76,6 +106,13 @@ impl Recompiler {
 					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc);
 					code_emitter.je(9);
 					code_emitter.add_imm_to_m16(2, &chip8.register_pc);
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+
+					// jump to next block
+					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
+					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
+					code_emitter.mov_m_to_eax_edi4ecx();
+					code_emitter.jmp_eax();
 					break;
 				},
 				(0x5, _, _, 0x0) => {
@@ -84,6 +121,13 @@ impl Recompiler {
 					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc);
 					code_emitter.jne(9);
 					code_emitter.add_imm_to_m16(2, &chip8.register_pc);
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+
+					// jump to next block
+					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
+					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
+					code_emitter.mov_m_to_eax_edi4ecx();
+					code_emitter.jmp_eax();
 					break;
 				},
 				(0x6, ..) => code_emitter.mov_imm_to_m8(low_byte, &chip8.register_v[x]),
@@ -145,6 +189,13 @@ impl Recompiler {
 					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc);
 					code_emitter.je(9);
 					code_emitter.add_imm_to_m16(2, &chip8.register_pc);
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+
+					// jump to next block
+					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
+					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
+					code_emitter.mov_m_to_eax_edi4ecx();
+					code_emitter.jmp_eax();
 					break;
 				},
 				(0xA, ..) => code_emitter.mov_imm_to_m16(nnn, &chip8.register_i),
@@ -152,6 +203,13 @@ impl Recompiler {
 					code_emitter.movzx_m_to_ax(&chip8.register_v[0]);
 					code_emitter.add_imm_to_ax(nnn);
 					code_emitter.mov_ax_to_m(&chip8.register_pc);
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+
+					// jump to next block
+					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
+					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
+					code_emitter.mov_m_to_eax_edi4ecx();
+					code_emitter.jmp_eax();
 					break;
 				},
 				(0xC, ..) => {
@@ -183,6 +241,13 @@ impl Recompiler {
 					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc);
 					code_emitter.jne(9);
 					code_emitter.add_imm_to_m16(2, &chip8.register_pc);
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+
+					// jump to next block
+					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
+					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
+					code_emitter.mov_m_to_eax_edi4ecx();
+					code_emitter.jmp_eax();
 					break;
 				},
 				(0xE, _, 0xA, 0x1) => {
@@ -195,6 +260,13 @@ impl Recompiler {
 					code_emitter.mov_imm_to_m16(register_pc, &chip8.register_pc);
 					code_emitter.je(9);
 					code_emitter.add_imm_to_m16(2, &chip8.register_pc);
+					Recompiler::emit_call_refresh(&mut code_emitter, chip8);
+
+					// jump to next block
+					code_emitter.mov_imm_to_edi(&self.code_cache.x86_block_addresses[0] as *const u32 as u32);
+					code_emitter.movzx_m16_to_ecx(&chip8.register_pc);
+					code_emitter.mov_m_to_eax_edi4ecx();
+					code_emitter.jmp_eax();
 					break;
 				},
 				(0xF, _, 0x0, 0x7) => {
@@ -260,8 +332,6 @@ impl Recompiler {
 				_ => panic!("unknown opcode")
 			}
 		}
-
-		code_emitter.ret();
 
 		CodeBlock::new(code_emitter.raw_code)
 	}

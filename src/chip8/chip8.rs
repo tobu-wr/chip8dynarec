@@ -31,7 +31,8 @@ pub struct Chip8 {
 	pub register_pc: u16,
 	pub register_sp: u8,
 	pub keyboard: Keyboard,
-	pub display: Display
+	pub display: Display,
+	time_last_frame: Instant
 }
 
 impl Chip8 {
@@ -48,7 +49,8 @@ impl Chip8 {
 			register_pc: ROM_START_ADDRESS,
 			register_sp: 0xFF,
 			keyboard: Keyboard::new(&sdl_context),
-			display: Display::new(&sdl_context)
+			display: Display::new(&sdl_context),
+			time_last_frame: Instant::now()
 		};
 
 		chip8.memory[0x00] = 0xF0;
@@ -170,10 +172,24 @@ impl Chip8 {
 		let _ = Command::new("cmd.exe").arg("/c").arg("pause").status();
 	}
 
+	pub extern "stdcall" fn refresh(&mut self) {
+		// ~60Hz
+		if self.time_last_frame.elapsed() >= Duration::from_millis(1000 / 60) { 
+			self.time_last_frame = Instant::now();
+			self.keyboard.update_key_states();
+			self.display.refresh();
+			if self.register_dt > 0 {
+				self.register_dt -= 1
+			}
+			if self.register_st > 0 {
+				self.register_st -= 1;
+				// TODO: beep
+			}
+		}
+	}
+
 	pub fn run(&mut self, filename: String) {
 		self.load_rom(filename);
-
-		let mut time = Instant::now();
 
 		#[cfg(not(feature="interpreter"))]
 		let mut recompiler = Recompiler::new();
@@ -185,22 +201,11 @@ impl Chip8 {
 			#[cfg(feature="interpreter")]
 			Interpreter::execute_next_instruction(self);
 
+			#[cfg(feature="interpreter")]
+			self.refresh();
+
 			#[cfg(not(feature="interpreter"))]
 			recompiler.execute_next_code_block(self);
-
-			// ~60Hz
-			if time.elapsed() >= Duration::from_millis(1000 / 60) { 
-				time = Instant::now();
-				self.keyboard.update_key_states();
-				self.display.refresh();
-				if self.register_dt > 0 {
-					self.register_dt -= 1
-				}
-				if self.register_st > 0 {
-					self.register_st -= 1;
-					// TODO: beep
-				}
-			}
 		}
 	}
 }

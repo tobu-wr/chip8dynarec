@@ -130,6 +130,11 @@ impl CodeEmitter {
 		self.push_u8(disp as u8);
 	}
 
+	pub fn jmp_eax(&mut self) {
+		self.push_u8(0xFF);
+		self.push_u8(0xE0);
+	}
+
 	pub fn mov_al_to_cl(&mut self) {
 		self.push_u8(0x88);
 		self.push_u8(0xC1);
@@ -204,6 +209,18 @@ impl CodeEmitter {
 		self.push_u8(0x8B);
 		self.push_u8(0x04);
 		self.push_u8(0x4F);
+	}
+
+	pub fn mov_m_to_eax(&mut self, m: &u32) {
+		self.push_u8(0xA1);
+		self.push_u32(m as *const u32 as u32);
+	}
+
+	// mov eax,dword ptr [edi+4*ecx]
+	pub fn mov_m_to_eax_edi4ecx(&mut self) {
+		self.push_u8(0x8B);
+		self.push_u8(0x04);
+		self.push_u8(0x8F);
 	}
 
 	pub fn mov_imm_to_m8(&mut self, imm: u8, m: &u8) {
