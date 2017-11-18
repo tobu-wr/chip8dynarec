@@ -24,6 +24,10 @@ impl CodeBlock {
 		code_block
 	}
 
+	pub fn get_x86address(&self) -> u32 {
+		self.function_pointer as u32
+	}
+
 	pub fn execute(&self) {
 		(self.function_pointer)();
 	}

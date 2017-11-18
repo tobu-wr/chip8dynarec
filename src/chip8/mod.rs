@@ -20,3 +20,4 @@ mod codecache;
 pub use self::chip8::Chip8;
 
 const MEMORY_SIZE: usize = 0x1000;
+const ROM_START_ADDRESS: u16 = 0x200;

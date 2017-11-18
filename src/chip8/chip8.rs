@@ -8,6 +8,7 @@ use std::time::{Duration, Instant};
 use std::process::Command;
 
 use chip8::MEMORY_SIZE;
+use chip8::ROM_START_ADDRESS;
 use chip8::keyboard::Keyboard;
 use chip8::display::Display;
 
@@ -19,7 +20,6 @@ use chip8::recompiler::Recompiler;
 
 const STACK_SIZE: usize = 16;
 const V_REGISTERS_COUNT: usize = 16;
-const ROM_START_ADDRESS: u16 = 0x200;
 
 pub struct Chip8 {
 	pub memory: [u8; MEMORY_SIZE],
