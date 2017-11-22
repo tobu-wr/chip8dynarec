@@ -7,7 +7,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "chip8dynarec"
 version = "0.1.0"
 dependencies = [
- "libc 0.2.32 (registry+https://github.com/rust-lang/crates.io-index)",
  "memmap 0.5.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "rand 0.3.16 (registry+https://github.com/rust-lang/crates.io-index)",
  "sdl2 0.30.0 (registry+https://github.com/rust-lang/crates.io-index)",

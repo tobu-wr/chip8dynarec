@@ -9,9 +9,6 @@ mod interpreter;
 mod recompiler;
 
 #[cfg(not(feature="interpreter"))]
-mod codeblock;
-
-#[cfg(not(feature="interpreter"))]
 mod codeemitter;
 
 #[cfg(not(feature="interpreter"))]

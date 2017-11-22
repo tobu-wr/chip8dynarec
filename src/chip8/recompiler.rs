@@ -1,5 +1,4 @@
 use chip8::Chip8;
-use chip8::codeblock::CodeBlock;
 use chip8::codeemitter::CodeEmitter;
 use chip8::codecache::CodeCache;
 use chip8::display::Display;
@@ -17,11 +16,11 @@ impl Recompiler {
 	}
 
 	pub fn execute_next_code_block(&mut self, chip8: &Chip8) {
-		if !self.code_cache.contains_block(chip8.register_pc) {
+		if !self.code_cache.contains(chip8.register_pc) {
 			let code_block = self.recompile_next_code_block(chip8);
 			self.code_cache.insert(chip8.register_pc, code_block);
 		}
-		self.code_cache[chip8.register_pc].execute();
+		self.code_cache.execute(chip8.register_pc);
 	}
 
 	fn emit_call_refresh(code_emitter: &mut CodeEmitter, chip8: &Chip8) {
@@ -30,7 +29,7 @@ impl Recompiler {
 		code_emitter.call_eax();
 	}
 
-	fn recompile_next_code_block(&self, chip8: &Chip8) -> CodeBlock {
+	fn recompile_next_code_block(&self, chip8: &Chip8) -> Vec<u8> {
 		let mut code_emitter = CodeEmitter::new();
 		let mut register_pc = chip8.register_pc;
 
@@ -327,6 +326,6 @@ impl Recompiler {
 			}
 		}
 
-		CodeBlock::new(code_emitter.raw_code)
+		code_emitter.raw_code
 	}
 }
