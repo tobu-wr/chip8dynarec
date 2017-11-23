@@ -37,16 +37,17 @@ impl CodeCache {
 	}
 
 	fn copy(&mut self, address: u16, block: Vec<u8>) {
-		if self.cache_size + block.len() > CACHE_CAPACITY {
+		let new_size = self.cache_size + block.len();
+		if new_size > CACHE_CAPACITY {
 			panic!("Cache overflow");
 		}
 		let _ = self.cache.set_protection(Protection::ReadWrite);
 		unsafe { 
-			self.cache.as_mut_slice()[self.cache_size..self.cache_size + block.len()].copy_from_slice(&block);
+			self.cache.as_mut_slice()[self.cache_size..new_size].copy_from_slice(&block);
 			self.x86_block_addresses[address as usize] = self.cache.ptr().offset(self.cache_size as isize) as u32;
 		}
 		let _ = self.cache.set_protection(Protection::ReadExecute);
-		self.cache_size += block.len();
+		self.cache_size = new_size;
 	}
 
 	pub fn contains(&self, address: u16) -> bool {

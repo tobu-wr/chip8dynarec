@@ -25,7 +25,7 @@ impl Recompiler {
 
 	fn emit_call_refresh(code_emitter: &mut CodeEmitter, chip8: &Chip8) {
 		code_emitter.push_imm32(chip8 as *const Chip8 as u32);
-		code_emitter.mov_imm_to_eax(Chip8::refresh as extern "stdcall" fn(&mut Chip8) as u32);
+		code_emitter.mov_imm_to_eax(Chip8::refresh as u32);
 		code_emitter.call_eax();
 	}
 
@@ -46,7 +46,7 @@ impl Recompiler {
 			match opcode {
 				(0x0, 0x0, 0xE, 0x0) => {
 					code_emitter.push_imm32(&chip8.display as *const Display as u32);
-					code_emitter.mov_imm_to_eax(Display::clear as extern "stdcall" fn(&mut Display) as u32);
+					code_emitter.mov_imm_to_eax(Display::clear as u32);
 					code_emitter.call_eax();
 				},
 				(0x0, 0x0, 0xE, 0xE) => {
@@ -220,7 +220,7 @@ impl Recompiler {
 					code_emitter.movzx_m8_to_eax(&chip8.register_v[x]);
 					code_emitter.push_eax();
 					code_emitter.push_imm32(&chip8.display as *const Display as u32);
-					code_emitter.mov_imm_to_eax(Display::draw_sprite as extern "stdcall" fn(&mut Display, u8, u8, &[u8]) -> bool as u32);
+					code_emitter.mov_imm_to_eax(Display::draw_sprite as u32);
 					code_emitter.call_eax();
 					code_emitter.mov_al_to_m(&chip8.register_v[0xF]);
 				},
@@ -229,7 +229,7 @@ impl Recompiler {
 					code_emitter.movzx_m8_to_eax(&chip8.register_v[x]);
 					code_emitter.push_eax();
 					code_emitter.push_imm32(&chip8.keyboard as *const Keyboard as u32);
-					code_emitter.mov_imm_to_eax(Keyboard::is_pressed as extern "stdcall" fn(&Keyboard, u8) -> bool as u32);
+					code_emitter.mov_imm_to_eax(Keyboard::is_pressed as u32);
 					code_emitter.call_eax();
 					code_emitter.cmp_al_with_imm(1);
 					code_emitter.jne(7);
@@ -248,7 +248,7 @@ impl Recompiler {
 					code_emitter.movzx_m8_to_eax(&chip8.register_v[x]);
 					code_emitter.push_eax();
 					code_emitter.push_imm32(&chip8.keyboard as *const Keyboard as u32);
-					code_emitter.mov_imm_to_eax(Keyboard::is_pressed as extern "stdcall" fn(&Keyboard, u8) -> bool as u32);
+					code_emitter.mov_imm_to_eax(Keyboard::is_pressed as u32);
 					code_emitter.call_eax();
 					code_emitter.cmp_al_with_imm(1);
 					code_emitter.je(7);
@@ -268,7 +268,7 @@ impl Recompiler {
 				},
 				(0xF, _, 0x0, 0xA) => {
 					code_emitter.push_imm32(&chip8.keyboard as *const Keyboard as u32);
-					code_emitter.mov_imm_to_eax(Keyboard::wait_key_press as extern "stdcall" fn(&mut Keyboard) -> u8 as u32);
+					code_emitter.mov_imm_to_eax(Keyboard::wait_key_press as u32);
 					code_emitter.call_eax();
 					code_emitter.mov_al_to_m(&chip8.register_v[x]);
 				},
