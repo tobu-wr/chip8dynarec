@@ -60,9 +60,9 @@ impl Display {
 	}
 
 	pub fn refresh(&mut self) {
-		self.canvas.set_draw_color(Color::RGB(0x3F, 0x51, 0xB5));
+		self.canvas.set_draw_color(Color::RGB(0x00, 0x00, 0x00));
 		self.canvas.clear();
-		self.canvas.set_draw_color(Color::RGB(0xC5, 0xCA, 0xE9));
+		self.canvas.set_draw_color(Color::RGB(0xFF, 0xFF, 0xFF));
 
 		for y in 0..DISPLAY_HEIGHT {
 			for x in 0..DISPLAY_WIDTH {
