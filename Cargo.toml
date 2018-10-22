@@ -1,7 +1,7 @@
 [package]
 name = "chip8dynarec"
-version = "0.1.0"
-authors = ["rwilfried <wilfried.rabouin@gmail.com>"]
+version = "1.0.0"
+authors = ["Wilfried Rabouin"]
 
 [dependencies]
 rand = "0.3"
