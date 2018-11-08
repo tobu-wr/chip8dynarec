@@ -16,10 +16,8 @@ impl Recompiler {
 	}
 
 	pub fn execute_next_code_block(&mut self, chip8: &Chip8) {
-		if !self.code_cache.contains(chip8.register_pc) {
-			let code_block = self.recompile_next_code_block(chip8);
-			self.code_cache.insert(chip8.register_pc, code_block);
-		}
+		let code_block = self.recompile_next_code_block(chip8);
+		self.code_cache.insert(chip8.register_pc, code_block);
 		self.code_cache.execute(chip8.register_pc);
 	}
 
